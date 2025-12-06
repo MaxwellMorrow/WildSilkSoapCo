@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+:root {
+  /* Warm, artisan soap brand colors */
+  --color-cream: #FDF8F3;
+  --color-cream-dark: #F5EDE3;
+  --color-honey: #D4A574;
+  --color-honey-dark: #B8956A;
+  --color-sage: #87A878;
+  --color-sage-dark: #6B8A5E;
+  --color-charcoal: #2D3436;
+  --color-charcoal-light: #4A5568;
+  --color-rose: #E8B4B8;
+  --color-lavender: #B8A9C9;
+  
+  --background: var(--color-cream);
+  --foreground: var(--color-charcoal);
+  --accent: var(--color-honey);
+  --accent-dark: var(--color-honey-dark);
+  --success: var(--color-sage);
+  --muted: var(--color-charcoal-light);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-dark: var(--accent-dark);
+  --color-success: var(--success);
+  --color-muted: var(--muted);
+  --color-cream: var(--color-cream);
+  --color-cream-dark: var(--color-cream-dark);
+  --color-honey: var(--color-honey);
+  --color-honey-dark: var(--color-honey-dark);
+  --color-sage: var(--color-sage);
+  --color-sage-dark: var(--color-sage-dark);
+  --color-charcoal: var(--color-charcoal);
+  --color-charcoal-light: var(--color-charcoal-light);
+  --color-rose: var(--color-rose);
+  --color-lavender: var(--color-lavender);
+  --font-sans: var(--font-cormorant);
+  --font-body: var(--font-nunito);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body, 'Nunito', sans-serif);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Mobile-first touch targets */
+button, a, input, select, textarea {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+input, select, textarea {
+  font-size: 16px; /* Prevents iOS zoom on focus */
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Safe area padding for notched phones */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+/* Custom scrollbar for desktop */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--color-cream-dark);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-honey);
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-honey-dark);
+  }
+}
+
+/* Focus styles for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--color-honey);
+  outline-offset: 2px;
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
