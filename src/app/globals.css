@@ -12,12 +12,18 @@
   --color-berry-blue: #4A6FA5;
   --color-berry-pink: #C77D9E;
   --color-berry-dark: #5A3D7A;
+  /* Sage green palette */
+  --color-sage: #87A96B;
+  --color-sage-light: #B8C9A3;
+  --color-sage-lighter: #D4E0C8;
+  --color-sage-dark: #6B8550;
+  --color-sage-darkest: #4A5D38;
   --color-accent: var(--color-berry-purple);
   --color-accent-light: var(--color-berry-blue);
   --color-accent-soft: var(--color-berry-pink);
   
-  --background: var(--color-white);
-  --foreground: var(--color-black);
+  --background: var(--color-sage-lighter);
+  --foreground: var(--color-sage-darkest);
   --accent: var(--color-berry-purple);
   --accent-dark: var(--color-berry-dark);
   --success: var(--color-berry-blue);
@@ -41,22 +47,26 @@
   --color-berry-blue: var(--color-berry-blue);
   --color-berry-pink: var(--color-berry-pink);
   --color-berry-dark: var(--color-berry-dark);
+  --color-sage: var(--color-sage);
+  --color-sage-light: var(--color-sage-light);
+  --color-sage-lighter: var(--color-sage-lighter);
+  --color-sage-dark: var(--color-sage-dark);
+  --color-sage-darkest: var(--color-sage-darkest);
   /* Backward compatibility - map old colors to new palette */
   --color-honey: var(--color-black);
   --color-honey-dark: var(--color-charcoal);
-  --color-sage: var(--color-berry-blue);
-  --color-sage-dark: var(--color-berry-dark);
   --color-rose: var(--color-berry-pink);
   --color-lavender: var(--color-berry-purple);
   --font-script: var(--font-script);
   --font-display: var(--font-display);
   --font-body: var(--font-body);
+  --font-charlotte-swash: var(--font-charlotte-swash);
 }
 
 body {
   background: var(--background);
   background-image: 
-    radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.03) 1px, transparent 0);
+    radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.02) 1px, transparent 0);
   background-size: 20px 20px;
   color: var(--foreground);
   font-family: var(--font-body, 'Inter', sans-serif);
@@ -97,16 +107,16 @@ html {
   }
   
   ::-webkit-scrollbar-track {
-    background: var(--color-cream-dark);
+    background: var(--color-sage-light);
   }
   
   ::-webkit-scrollbar-thumb {
-    background: var(--color-berry-purple);
+    background: var(--color-sage-dark);
     border-radius: 4px;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-berry-dark);
+    background: var(--color-sage-darkest);
   }
 }
 
@@ -123,6 +133,12 @@ html {
   letter-spacing: 0.02em;
 }
 
+.font-script-swash {
+  font-family: var(--font-charlotte-swash), cursive;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
 .font-display {
   font-family: var(--font-display), serif;
   letter-spacing: -0.02em;
@@ -130,7 +146,7 @@ html {
 
 /* Elegant button styles */
 .btn-primary {
-  background: var(--color-black);
+  background: var(--color-sage-darkest);
   color: var(--color-white);
   font-weight: 500;
   letter-spacing: 0.05em;
@@ -140,14 +156,14 @@ html {
 }
 
 .btn-primary:hover {
-  background: var(--color-charcoal);
+  background: var(--color-sage-dark);
   transform: translateY(-1px);
 }
 
 .btn-secondary {
   background: transparent;
-  color: var(--color-black);
-  border: 2px solid var(--color-black);
+  color: var(--color-sage-darkest);
+  border: 2px solid var(--color-sage-darkest);
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -156,7 +172,7 @@ html {
 }
 
 .btn-secondary:hover {
-  background: var(--color-black);
+  background: var(--color-sage-darkest);
   color: var(--color-white);
 }
 

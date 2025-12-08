@@ -1,0 +1,60 @@
+[1mdiff --git a/src/app/(shop)/cart/page.tsx b/src/app/(shop)/cart/page.tsx[m
+[1mindex 7eb04f0..35fcae0 100644[m
+[1m--- a/src/app/(shop)/cart/page.tsx[m
+[1m+++ b/src/app/(shop)/cart/page.tsx[m
+[36m@@ -61,7 +61,7 @@[m [mexport default function CartPage() {[m
+     setIsCheckingOut(true);[m
+ [m
+     try {[m
+[31m-      const res = await fetch("/api/stripe/checkout", {[m
+[32m+[m[32m      const res = await fetch("/api/square/checkout", {[m
+         method: "POST",[m
+         headers: { "Content-Type": "application/json" },[m
+         body: JSON.stringify({ items: cart }),[m
+[36m@@ -282,7 +282,7 @@[m [mexport default function CartPage() {[m
+               </button>[m
+ [m
+               <p className="text-center text-xs text-charcoal-light mt-4">[m
+[31m-                Secure checkout powered by Stripe[m
+[32m+[m[32m                Secure checkout powered by Square[m
+               </p>[m
+             </div>[m
+ [m
+[1mdiff --git a/src/app/(shop)/checkout/success/page.tsx b/src/app/(shop)/checkout/success/page.tsx[m
+[1mindex 99cef28..98e4618 100644[m
+[1m--- a/src/app/(shop)/checkout/success/page.tsx[m
+[1m+++ b/src/app/(shop)/checkout/success/page.tsx[m
+[36m@@ -6,7 +6,7 @@[m [mimport { useSearchParams } from "next/navigation";[m
+ [m
+ function CheckoutSuccessContent() {[m
+   const searchParams = useSearchParams();[m
+[31m-  const sessionId = searchParams.get("session_id");[m
+[32m+[m[32m  const paymentLinkId = searchParams.get("payment_link_id");[m
+ [m
+   useEffect(() => {[m
+     // Clear the cart after successful checkout[m
+[36m@@ -33,9 +33,9 @@[m [mfunction CheckoutSuccessContent() {[m
+         A confirmation email has been sent to your email address.[m
+       </p>[m
+ [m
+[31m-      {sessionId && ([m
+[32m+[m[32m      {paymentLinkId && ([m
+         <p className="text-sm text-charcoal-light mb-8">[m
+[31m-          Order Reference: <span className="font-mono">{sessionId.slice(-8)}</span>[m
+[32m+[m[32m          Order Reference: <span className="font-mono">{paymentLinkId.slice(-8)}</span>[m
+         </p>[m
+       )}[m
+ [m
+[1mdiff --git a/src/app/admin/settings/page.tsx b/src/app/admin/settings/page.tsx[m
+[1mindex 9936248..46710bd 100644[m
+[1m--- a/src/app/admin/settings/page.tsx[m
+[1m+++ b/src/app/admin/settings/page.tsx[m
+[36m@@ -113,7 +113,7 @@[m [mexport default function AdminSettingsPage() {[m
+           <div className="space-y-3">[m
+             {[[m
+               { name: "MongoDB", status: "Configure in Vercel", icon: "🍃" },[m
+[31m-              { name: "Stripe Payments", status: "Configure in Vercel", icon: "💳" },[m
+[32m+[m[32m              { name: "Square Payments", status: "Configure in Vercel", icon: "💳" },[m
+               { name: "Cloudinary Images", status: "Configure in Vercel", icon: "🖼️" },[m
+               { name: "EasyPost Shipping", status: "Configure in Vercel", icon: "📦" },[m
+             ].map((integration) => ([m

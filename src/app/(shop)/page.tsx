@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import Image from "next/image";
 
 interface Product {
   _id: string;
@@ -34,18 +35,21 @@ export default function HomePage() {
   return (
     <div className="animate-fade-in">
       {/* Hero Section */}
-      <section className="relative bg-white overflow-hidden border-b border-black/10">
+      <section className="relative bg-sage-lighter overflow-hidden border-b border-sage-dark/20">
         <div className="relative max-w-7xl mx-auto px-4 py-20 md:py-28 lg:py-36">
           <div className="max-w-3xl mx-auto text-center">
-            <p className="text-charcoal-light font-medium tracking-widest uppercase text-xs mb-6 animate-slide-up font-display">
-              Hand Poured • Skin Loving
-            </p>
-            <h1 className="font-script text-5xl md:text-6xl lg:text-7xl font-medium text-black leading-tight mb-6">
-              Wild Silk Soap Co.
-            </h1>
-            <p className="text-charcoal-light font-display text-xs uppercase tracking-widest mb-8">
-              Tussah Silk • Luxury Oils
-            </p>
+            <div className="flex justify-center mb-8 animate-slide-up">
+              <div className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96">
+                <Image
+                  src="/logo.png"
+                  alt="Wild Silk Soap Co."
+                  fill
+                  className="object-contain"
+                  priority
+                  sizes="(max-width: 768px) 256px, (max-width: 1024px) 320px, 384px"
+                />
+              </div>
+            </div>
             <p className="text-charcoal-light text-lg md:text-xl mb-10 leading-relaxed max-w-2xl mx-auto">
               Each bar is lovingly crafted with premium natural ingredients, 
               bringing a touch of luxury to your daily self-care ritual.
@@ -72,7 +76,7 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 md:py-20 bg-cream border-y border-black/10">
+      <section className="py-16 md:py-20 bg-sage-light border-y border-sage-dark/20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16">
             {[
@@ -105,10 +109,10 @@ export default function HomePage() {
               }
             ].map((feature, index) => (
               <div key={index} className="text-center p-6">
-                <div className="inline-flex items-center justify-center w-16 h-16 border-2 border-black rounded-full text-black mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 border-2 border-sage-darkest rounded-full text-sage-darkest mb-6">
                   {feature.icon}
                 </div>
-                <h3 className="font-display text-xl font-semibold text-black mb-3">
+                <h3 className="font-display text-xl font-semibold text-sage-darkest mb-3">
                   {feature.title}
                 </h3>
                 <p className="text-charcoal-light leading-relaxed">
@@ -121,13 +125,13 @@ export default function HomePage() {
       </section>
 
       {/* Featured Products Placeholder */}
-      <section className="py-16 md:py-20 bg-white">
+      <section className="py-16 md:py-20 bg-sage-lighter">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
             <p className="text-charcoal-light font-medium tracking-widest uppercase text-xs mb-3 font-display">
               Our Collection
             </p>
-            <h2 className="font-script text-4xl md:text-5xl font-medium text-black">
+            <h2 className="font-script text-4xl md:text-5xl font-medium text-sage-darkest">
               Featured Soaps
             </h2>
           </div>
@@ -137,11 +141,11 @@ export default function HomePage() {
             {isLoading ? (
               [1, 2, 3].map((i) => (
                 <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm animate-pulse">
-                  <div className="aspect-square bg-cream-dark" />
+                  <div className="aspect-square bg-sage-light" />
                   <div className="p-5">
-                    <div className="h-5 bg-cream-dark rounded w-3/4 mb-2" />
-                    <div className="h-4 bg-cream-dark rounded w-1/2 mb-3" />
-                    <div className="h-8 bg-cream-dark rounded" />
+                    <div className="h-5 bg-sage-light rounded w-3/4 mb-2" />
+                    <div className="h-4 bg-sage-light rounded w-1/2 mb-3" />
+                    <div className="h-8 bg-sage-light rounded" />
                   </div>
                 </div>
               ))
@@ -152,7 +156,7 @@ export default function HomePage() {
                   href={`/products/${product._id}`}
                   className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow group"
                 >
-                  <div className="aspect-square bg-cream-dark relative overflow-hidden">
+                  <div className="aspect-square bg-sage-light relative overflow-hidden">
                     {product.images[0] ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -167,12 +171,12 @@ export default function HomePage() {
                     )}
                   </div>
                   <div className="p-5">
-                    <h3 className="font-script text-xl font-medium text-black mb-2">
+                    <h3 className="font-script text-xl font-medium text-sage-darkest mb-2">
                       {product.name}
                     </h3>
                     <p className="text-charcoal-light text-xs uppercase tracking-wider mb-4 font-display">{product.category}</p>
                     <div className="flex items-center justify-between">
-                      <span className="text-black font-bold text-lg">${product.price.toFixed(2)}</span>
+                      <span className="text-sage-darkest font-bold text-lg">${product.price.toFixed(2)}</span>
                       <span className="text-berry-purple text-sm font-medium uppercase tracking-wider">View Details</span>
                     </div>
                   </div>
@@ -188,7 +192,7 @@ export default function HomePage() {
           <div className="text-center mt-10">
             <Link 
               href="/products"
-              className="inline-flex items-center text-black hover:text-berry-purple font-medium uppercase tracking-wider text-sm transition-colors"
+              className="inline-flex items-center text-sage-darkest hover:text-berry-purple font-medium uppercase tracking-wider text-sm transition-colors"
             >
               View All Products
               <svg className="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -200,23 +204,23 @@ export default function HomePage() {
       </section>
 
       {/* Newsletter Section */}
-      <section className="py-16 md:py-20 bg-black text-white border-t border-black/10">
+      <section className="py-16 md:py-20 bg-sage-dark text-white border-t border-sage-darkest/30">
         <div className="max-w-2xl mx-auto px-4 text-center">
           <h2 className="font-script text-4xl md:text-5xl font-medium mb-4">
             Join Our Community
           </h2>
-          <p className="text-gray-300 mb-8 font-display">
+          <p className="text-sage-lighter mb-8 font-display">
             Subscribe for exclusive offers, new product announcements, and self-care tips.
           </p>
           <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             <input 
               type="email" 
               placeholder="Enter your email"
-              className="flex-1 px-5 py-3 rounded-none bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-white focus:ring-2 focus:ring-white/20 transition-all"
+              className="flex-1 px-5 py-3 rounded-none bg-white/20 border border-white/30 text-white placeholder-sage-lighter focus:outline-none focus:border-white focus:ring-2 focus:ring-white/30 transition-all"
             />
             <button 
               type="submit"
-              className="bg-white text-black font-medium px-8 py-3 rounded-none transition-all whitespace-nowrap uppercase tracking-wider text-sm hover:bg-gray-100"
+              className="bg-white text-sage-darkest font-medium px-8 py-3 rounded-none transition-all whitespace-nowrap uppercase tracking-wider text-sm hover:bg-sage-lighter"
             >
               Subscribe
             </button>
@@ -225,7 +229,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-cream py-12 border-t border-black/10">
+      <footer className="bg-sage-light py-12 border-t border-sage-dark/20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <Logo size="md" showText={true} />

@@ -1,14 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Dancing_Script, Playfair_Display, Inter } from "next/font/google";
+import { Playfair_Display, Inter } from "next/font/google";
+import localFont from "next/font/local";
 import AuthProvider from "@/components/AuthProvider";
 import "./globals.css";
-
-const dancingScript = Dancing_Script({
-  variable: "--font-script",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
 
 const playfair = Playfair_Display({
   variable: "--font-display",
@@ -21,6 +15,18 @@ const inter = Inter({
   variable: "--font-body",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const charlotteSouthern = localFont({
+  src: "../../public/fonts/Charlotte Southern.otf",
+  variable: "--font-script",
+  display: "swap",
+});
+
+const charlotteSouthernSwash = localFont({
+  src: "../../public/fonts/Charlotte Southern Swash.otf",
+  variable: "--font-charlotte-swash",
   display: "swap",
 });
 
@@ -57,7 +63,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${dancingScript.variable} ${playfair.variable} ${inter.variable}`}>
+    <html lang="en" className={`${charlotteSouthern.variable} ${charlotteSouthernSwash.variable} ${playfair.variable} ${inter.variable}`}>
       <body className="antialiased">
         <AuthProvider>{children}</AuthProvider>
       </body>

@@ -45,14 +45,14 @@ export default function Logo({ size = "md", showText = true, className = "" }: L
             onError={handleError}
           />
         ) : (
-          <div className="w-full h-full border-2 border-black rounded-full flex items-center justify-center">
-            <span className="text-black font-bold text-xl font-script">W</span>
+          <div className="w-full h-full border-2 border-sage-darkest rounded-full flex items-center justify-center">
+            <span className="text-sage-darkest font-bold text-xl font-script">W</span>
           </div>
         )}
       </div>
       {showText && (
         <div className="hidden sm:block">
-          <h1 className={`font-script ${sizeMap[size].text} font-medium text-black leading-tight`}>
+          <h1 className={`font-script ${sizeMap[size].text} font-medium text-sage-darkest leading-tight`}>
             Wild Silk Soap Co.
           </h1>
           <p className="text-[10px] text-charcoal-light uppercase tracking-wider -mt-1 font-display">
