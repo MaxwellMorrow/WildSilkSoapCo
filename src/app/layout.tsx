@@ -1,17 +1,24 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Nunito } from "next/font/google";
+import { Dancing_Script, Playfair_Display, Inter } from "next/font/google";
 import AuthProvider from "@/components/AuthProvider";
 import "./globals.css";
 
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
+const dancingScript = Dancing_Script({
+  variable: "--font-script",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
-const nunito = Nunito({
-  variable: "--font-nunito",
+const playfair = Playfair_Display({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const inter = Inter({
+  variable: "--font-body",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
@@ -41,7 +48,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#D4A574",
+  themeColor: "#2D3436",
 };
 
 export default function RootLayout({
@@ -50,7 +57,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${nunito.variable}`}>
+    <html lang="en" className={`${dancingScript.variable} ${playfair.variable} ${inter.variable}`}>
       <body className="antialiased">
         <AuthProvider>{children}</AuthProvider>
       </body>

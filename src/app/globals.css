@@ -1,23 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  /* Warm, artisan soap brand colors */
-  --color-cream: #FDF8F3;
-  --color-cream-dark: #F5EDE3;
-  --color-honey: #D4A574;
-  --color-honey-dark: #B8956A;
-  --color-sage: #87A878;
-  --color-sage-dark: #6B8A5E;
+  /* Elegant logo-inspired color palette */
+  --color-white: #FFFFFF;
+  --color-cream: #FDFCFB;
+  --color-cream-dark: #F5F3F1;
+  --color-black: #000000;
   --color-charcoal: #2D3436;
-  --color-charcoal-light: #4A5568;
-  --color-rose: #E8B4B8;
-  --color-lavender: #B8A9C9;
+  --color-charcoal-light: #636E72;
+  --color-berry-purple: #6B4C93;
+  --color-berry-blue: #4A6FA5;
+  --color-berry-pink: #C77D9E;
+  --color-berry-dark: #5A3D7A;
+  --color-accent: var(--color-berry-purple);
+  --color-accent-light: var(--color-berry-blue);
+  --color-accent-soft: var(--color-berry-pink);
   
-  --background: var(--color-cream);
-  --foreground: var(--color-charcoal);
-  --accent: var(--color-honey);
-  --accent-dark: var(--color-honey-dark);
-  --success: var(--color-sage);
+  --background: var(--color-white);
+  --foreground: var(--color-black);
+  --accent: var(--color-berry-purple);
+  --accent-dark: var(--color-berry-dark);
+  --success: var(--color-berry-blue);
   --muted: var(--color-charcoal-light);
 }
 
@@ -28,27 +31,39 @@
   --color-accent-dark: var(--accent-dark);
   --color-success: var(--success);
   --color-muted: var(--muted);
+  --color-white: var(--color-white);
   --color-cream: var(--color-cream);
   --color-cream-dark: var(--color-cream-dark);
-  --color-honey: var(--color-honey);
-  --color-honey-dark: var(--color-honey-dark);
-  --color-sage: var(--color-sage);
-  --color-sage-dark: var(--color-sage-dark);
+  --color-black: var(--color-black);
   --color-charcoal: var(--color-charcoal);
   --color-charcoal-light: var(--color-charcoal-light);
-  --color-rose: var(--color-rose);
-  --color-lavender: var(--color-lavender);
-  --font-sans: var(--font-cormorant);
-  --font-body: var(--font-nunito);
+  --color-berry-purple: var(--color-berry-purple);
+  --color-berry-blue: var(--color-berry-blue);
+  --color-berry-pink: var(--color-berry-pink);
+  --color-berry-dark: var(--color-berry-dark);
+  /* Backward compatibility - map old colors to new palette */
+  --color-honey: var(--color-black);
+  --color-honey-dark: var(--color-charcoal);
+  --color-sage: var(--color-berry-blue);
+  --color-sage-dark: var(--color-berry-dark);
+  --color-rose: var(--color-berry-pink);
+  --color-lavender: var(--color-berry-purple);
+  --font-script: var(--font-script);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
 }
 
 body {
   background: var(--background);
+  background-image: 
+    radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.03) 1px, transparent 0);
+  background-size: 20px 20px;
   color: var(--foreground);
-  font-family: var(--font-body, 'Nunito', sans-serif);
+  font-family: var(--font-body, 'Inter', sans-serif);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
 }
 
 /* Mobile-first touch targets */
@@ -86,19 +101,63 @@ html {
   }
   
   ::-webkit-scrollbar-thumb {
-    background: var(--color-honey);
+    background: var(--color-berry-purple);
     border-radius: 4px;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-honey-dark);
+    background: var(--color-berry-dark);
   }
 }
 
 /* Focus styles for accessibility */
 *:focus-visible {
-  outline: 2px solid var(--color-honey);
+  outline: 2px solid var(--color-berry-purple);
   outline-offset: 2px;
+}
+
+/* Typography utilities */
+.font-script {
+  font-family: var(--font-script), cursive;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.font-display {
+  font-family: var(--font-display), serif;
+  letter-spacing: -0.02em;
+}
+
+/* Elegant button styles */
+.btn-primary {
+  background: var(--color-black);
+  color: var(--color-white);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: var(--color-charcoal);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-black);
+  border: 2px solid var(--color-black);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--color-black);
+  color: var(--color-white);
 }
 
 /* Animation utilities */

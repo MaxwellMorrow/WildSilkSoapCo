@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Logo from "@/components/Logo";
 
 interface Product {
   _id: string;
@@ -33,39 +34,35 @@ export default function HomePage() {
   return (
     <div className="animate-fade-in">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-cream via-cream-dark to-rose/20 overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-20 -right-20 w-80 h-80 bg-honey/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 -left-20 w-60 h-60 bg-sage/10 rounded-full blur-3xl" />
-        </div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-24 lg:py-32">
-          <div className="max-w-2xl">
-            <p className="text-honey-dark font-medium tracking-wide uppercase text-sm mb-4 animate-slide-up">
-              Handcrafted with Love
+      <section className="relative bg-white overflow-hidden border-b border-black/10">
+        <div className="relative max-w-7xl mx-auto px-4 py-20 md:py-28 lg:py-36">
+          <div className="max-w-3xl mx-auto text-center">
+            <p className="text-charcoal-light font-medium tracking-widest uppercase text-xs mb-6 animate-slide-up font-display">
+              Hand Poured • Skin Loving
             </p>
-            <h1 className="font-[family-name:var(--font-cormorant)] text-4xl md:text-5xl lg:text-6xl font-semibold text-charcoal leading-tight mb-6">
-              Natural Artisan Soaps for{" "}
-              <span className="text-honey-dark">Mindful Living</span>
+            <h1 className="font-script text-5xl md:text-6xl lg:text-7xl font-medium text-black leading-tight mb-6">
+              Wild Silk Soap Co.
             </h1>
-            <p className="text-charcoal-light text-lg md:text-xl mb-8 leading-relaxed">
+            <p className="text-charcoal-light font-display text-xs uppercase tracking-widest mb-8">
+              Tussah Silk • Luxury Oils
+            </p>
+            <p className="text-charcoal-light text-lg md:text-xl mb-10 leading-relaxed max-w-2xl mx-auto">
               Each bar is lovingly crafted with premium natural ingredients, 
               bringing a touch of luxury to your daily self-care ritual.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
                 href="/products"
-                className="inline-flex items-center justify-center bg-honey hover:bg-honey-dark text-white font-semibold px-8 py-4 rounded-full transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+                className="btn-primary inline-flex items-center justify-center px-10 py-4 rounded-none transition-all"
               >
                 Shop Collection
-                <svg className="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </Link>
               <Link 
                 href="/products"
-                className="inline-flex items-center justify-center bg-white hover:bg-cream-dark text-charcoal font-semibold px-8 py-4 rounded-full transition-all border-2 border-cream-dark hover:border-honey"
+                className="btn-secondary inline-flex items-center justify-center px-10 py-4 rounded-none transition-all"
               >
                 Learn Our Story
               </Link>
@@ -75,9 +72,9 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 md:py-20 bg-white">
+      <section className="py-16 md:py-20 bg-cream border-y border-black/10">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16">
             {[
               {
                 icon: (
@@ -108,10 +105,10 @@ export default function HomePage() {
               }
             ].map((feature, index) => (
               <div key={index} className="text-center p-6">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-cream rounded-full text-honey-dark mb-4">
+                <div className="inline-flex items-center justify-center w-16 h-16 border-2 border-black rounded-full text-black mb-6">
                   {feature.icon}
                 </div>
-                <h3 className="font-[family-name:var(--font-cormorant)] text-xl font-semibold text-charcoal mb-2">
+                <h3 className="font-display text-xl font-semibold text-black mb-3">
                   {feature.title}
                 </h3>
                 <p className="text-charcoal-light leading-relaxed">
@@ -124,13 +121,13 @@ export default function HomePage() {
       </section>
 
       {/* Featured Products Placeholder */}
-      <section className="py-16 md:py-20 bg-cream">
+      <section className="py-16 md:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
-            <p className="text-honey-dark font-medium tracking-wide uppercase text-sm mb-2">
+            <p className="text-charcoal-light font-medium tracking-widest uppercase text-xs mb-3 font-display">
               Our Collection
             </p>
-            <h2 className="font-[family-name:var(--font-cormorant)] text-3xl md:text-4xl font-semibold text-charcoal">
+            <h2 className="font-script text-4xl md:text-5xl font-medium text-black">
               Featured Soaps
             </h2>
           </div>
@@ -170,13 +167,13 @@ export default function HomePage() {
                     )}
                   </div>
                   <div className="p-5">
-                    <h3 className="font-[family-name:var(--font-cormorant)] text-lg font-semibold text-charcoal mb-1">
+                    <h3 className="font-script text-xl font-medium text-black mb-2">
                       {product.name}
                     </h3>
-                    <p className="text-charcoal-light text-sm mb-3">{product.category}</p>
+                    <p className="text-charcoal-light text-xs uppercase tracking-wider mb-4 font-display">{product.category}</p>
                     <div className="flex items-center justify-between">
-                      <span className="text-honey-dark font-bold text-lg">${product.price.toFixed(2)}</span>
-                      <span className="text-sage text-sm font-medium">View Details</span>
+                      <span className="text-black font-bold text-lg">${product.price.toFixed(2)}</span>
+                      <span className="text-berry-purple text-sm font-medium uppercase tracking-wider">View Details</span>
                     </div>
                   </div>
                 </Link>
@@ -191,10 +188,10 @@ export default function HomePage() {
           <div className="text-center mt-10">
             <Link 
               href="/products"
-              className="inline-flex items-center text-honey-dark hover:text-honey font-semibold transition-colors"
+              className="inline-flex items-center text-black hover:text-berry-purple font-medium uppercase tracking-wider text-sm transition-colors"
             >
               View All Products
-              <svg className="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
             </Link>
@@ -203,23 +200,23 @@ export default function HomePage() {
       </section>
 
       {/* Newsletter Section */}
-      <section className="py-16 md:py-20 bg-charcoal text-white">
+      <section className="py-16 md:py-20 bg-black text-white border-t border-black/10">
         <div className="max-w-2xl mx-auto px-4 text-center">
-          <h2 className="font-[family-name:var(--font-cormorant)] text-3xl md:text-4xl font-semibold mb-4">
+          <h2 className="font-script text-4xl md:text-5xl font-medium mb-4">
             Join Our Community
           </h2>
-          <p className="text-gray-300 mb-8">
+          <p className="text-gray-300 mb-8 font-display">
             Subscribe for exclusive offers, new product announcements, and self-care tips.
           </p>
           <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             <input 
               type="email" 
               placeholder="Enter your email"
-              className="flex-1 px-5 py-3 rounded-full bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-honey"
+              className="flex-1 px-5 py-3 rounded-none bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-white focus:ring-2 focus:ring-white/20 transition-all"
             />
             <button 
               type="submit"
-              className="bg-honey hover:bg-honey-dark text-white font-semibold px-8 py-3 rounded-full transition-colors whitespace-nowrap"
+              className="bg-white text-black font-medium px-8 py-3 rounded-none transition-all whitespace-nowrap uppercase tracking-wider text-sm hover:bg-gray-100"
             >
               Subscribe
             </button>
@@ -228,20 +225,11 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-cream-dark py-12">
+      <footer className="bg-cream py-12 border-t border-black/10">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-honey rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-lg font-[family-name:var(--font-cormorant)]">W</span>
-              </div>
-              <div>
-                <h3 className="font-[family-name:var(--font-cormorant)] text-lg font-semibold text-charcoal leading-tight">
-                  Wild Silk Soap Co.
-                </h3>
-              </div>
-            </div>
-            <p className="text-charcoal-light text-sm text-center md:text-right">
+            <Logo size="md" showText={true} />
+            <p className="text-charcoal-light text-sm text-center md:text-right font-display">
               © 2024 Wild Silk Soap Co. All rights reserved. Made with love.
             </p>
           </div>

@@ -84,6 +84,19 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // Check for MongoDB authentication errors
+    if (errorMessage.includes("bad auth") || errorMessage.includes("authentication failed") || (error instanceof Error && 'code' in error && error.code === 8000)) {
+      return NextResponse.json(
+        { 
+          error: "Database authentication failed. Please verify your MongoDB username and password in the connection string.",
+          details: isDevelopment 
+            ? "Check that your MONGODB_URI has the correct username and password. If your password contains special characters, they must be URL-encoded (e.g., @ becomes %40)." 
+            : "Please verify your MongoDB credentials in Vercel environment variables."
+        },
+        { status: 500 }
+      );
+    }
+    
     // Check for MongoDB connection errors
     if (errorMessage.includes("MongoServerError") || errorMessage.includes("MongooseError") || errorMessage.includes("connection")) {
       return NextResponse.json(

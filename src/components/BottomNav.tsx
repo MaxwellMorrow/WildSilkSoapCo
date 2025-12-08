@@ -52,7 +52,7 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-cream-dark shadow-lg safe-bottom z-50 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-black/10 shadow-lg safe-bottom z-50 md:hidden">
       <div className="flex justify-around items-center h-16">
         {navItems.map((item) => {
           const isActive = pathname === item.href || 
@@ -64,12 +64,12 @@ export default function BottomNav() {
               href={item.href}
               className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
                 isActive 
-                  ? "text-honey-dark" 
-                  : "text-charcoal-light hover:text-honey"
+                  ? "text-black" 
+                  : "text-charcoal-light hover:text-berry-purple"
               }`}
             >
               {item.icon}
-              <span className="text-xs mt-1 font-medium">{item.label}</span>
+              <span className="text-xs mt-1 font-medium uppercase tracking-wider">{item.label}</span>
             </Link>
           );
         })}
