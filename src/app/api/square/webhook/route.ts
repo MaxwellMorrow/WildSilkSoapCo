@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
         const fulfillment = order.fulfillments?.[0];
         const shippingDetails = fulfillment?.shipmentDetails;
         const recipient = shippingDetails?.recipient;
-        const address = shippingDetails?.address;
+        const address = recipient?.address;
 
         // Calculate totals from line items
         const lineItems = order.lineItems || [];
@@ -146,9 +146,10 @@ export async function POST(request: NextRequest) {
         const total = subtotal + shippingCost;
 
         // Square uses snake_case: buyer_email_address
-        const customerEmail = recipient?.email || payment.buyer_email_address || "";
+        // recipient.emailAddress is the correct property name in Square SDK
+        const customerEmail = recipient?.emailAddress || payment.buyer_email_address || "";
         const shippingAddress = {
-          name: `${recipient?.givenName || ""} ${recipient?.familyName || ""}`.trim() || "Customer",
+          name: recipient?.displayName || `${recipient?.givenName || ""} ${recipient?.familyName || ""}`.trim() || "Customer",
           street: address?.addressLine1 || "",
           city: address?.locality || "",
           state: address?.administrativeDistrictLevel1 || "",
