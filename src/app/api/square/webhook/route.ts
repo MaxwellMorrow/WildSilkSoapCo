@@ -10,17 +10,31 @@ const webhookSecret = process.env.SQUARE_WEBHOOK_SECRET || "";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
-    const signature = request.headers.get("x-square-hmacsha256-signature");
-
-    if (!signature) {
+    
+    // Check headers case-insensitively (headers are typically lowercase, but be safe)
+    const headers: Record<string, string> = {};
+    request.headers.forEach((value, key) => {
+      headers[key.toLowerCase()] = value;
+    });
+    
+    const signature = headers["x-square-hmacsha256-signature"] || headers["x-square-signature"];
+    
+    // Log headers for debugging
+    console.log("Webhook headers:", Object.keys(headers));
+    console.log("Signature present:", !!signature);
+    
+    // Only require signature if webhook secret is configured
+    if (webhookSecret && !signature) {
+      console.error("No signature provided but webhook secret is configured");
       return NextResponse.json(
         { error: "No signature provided" },
         { status: 400 }
       );
     }
 
-    // Verify webhook signature
-    if (webhookSecret) {
+    // Verify webhook signature if secret is configured
+    if (webhookSecret && signature) {
+      // For Square webhooks, the signature is HMAC-SHA256 of the raw body
       const hash = crypto
         .createHmac("sha256", webhookSecret)
         .update(body)
@@ -28,11 +42,16 @@ export async function POST(request: NextRequest) {
 
       if (hash !== signature) {
         console.error("Webhook signature verification failed");
+        console.error("Expected signature (first 20 chars):", hash.substring(0, 20));
+        console.error("Received signature (first 20 chars):", signature.substring(0, 20));
         return NextResponse.json(
           { error: "Webhook signature verification failed" },
-          { status: 400 }
+          { status: 403 }
         );
       }
+      console.log("Webhook signature verified successfully");
+    } else if (!webhookSecret) {
+      console.warn("Webhook secret not configured - skipping signature verification");
     }
 
     const squareClient = getSquareClient();
@@ -51,6 +70,12 @@ export async function POST(request: NextRequest) {
 
     // Log the event type for debugging
     console.log("Square webhook event received:", event.type);
+    console.log("Event structure:", {
+      type: event.type,
+      hasData: !!event.data,
+      hasObject: !!event.data?.object,
+      hasPayment: !!event.data?.object?.payment,
+    });
 
     // Handle payment.updated and payment.created events
     if (event.type === "payment.updated" || event.type === "payment.created") {
@@ -175,14 +200,16 @@ export async function POST(request: NextRequest) {
           total,
           squareOrderId: orderId,
           squarePaymentLinkId: payment.payment_link_id || undefined,
-          paymentStatus: payment.status === "COMPLETED" ? "completed" : "pending",
-          status: payment.status === "COMPLETED" ? "paid" : "pending",
+          // Square payment statuses: APPROVED, COMPLETED, CANCELED, FAILED
+          // APPROVED means authorized but not yet captured, COMPLETED means captured/paid
+          paymentStatus: payment.status === "COMPLETED" || payment.status === "APPROVED" ? "completed" : "pending",
+          status: payment.status === "COMPLETED" || payment.status === "APPROVED" ? "paid" : "pending",
         });
 
         console.log("Order created from Square webhook:", orderId, "Order ID:", newOrder._id);
 
-        // Send order confirmation email if payment is completed and email is available
-        if (payment.status === "COMPLETED" && customerEmail) {
+        // Send order confirmation email if payment is completed/approved and email is available
+        if ((payment.status === "COMPLETED" || payment.status === "APPROVED") && customerEmail) {
           try {
             await sendOrderConfirmationEmail(customerEmail, {
               orderNumber: newOrder._id.toString().slice(-8).toUpperCase(),
