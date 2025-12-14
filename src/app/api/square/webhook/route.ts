@@ -3,7 +3,6 @@ import dbConnect from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
 import { getSquareClient, getSquareLocationId } from "@/lib/square";
 import { sendOrderConfirmationEmail } from "@/lib/email";
-import { WebhooksHelper } from "square";
 import crypto from "crypto";
 
 const webhookSecret = process.env.SQUARE_WEBHOOK_SECRET || "";
@@ -37,7 +36,6 @@ export async function POST(request: NextRequest) {
     }
 
     const squareClient = getSquareClient();
-    const webhooksHelper = new WebhooksHelper(squareClient);
 
     // Parse the webhook event
     let event;
