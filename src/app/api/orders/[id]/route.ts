@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import dbConnect from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
 import { authOptions } from "@/lib/auth";
+import { sendTrackingEmail } from "@/lib/email";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -78,12 +79,7 @@ export async function PUT(
 
     await dbConnect();
 
-    const order = await Order.findByIdAndUpdate(
-      id,
-      { $set: data },
-      { new: true }
-    );
-
+    const order = await Order.findById(id);
     if (!order) {
       return NextResponse.json(
         { error: "Order not found" },
@@ -91,7 +87,49 @@ export async function PUT(
       );
     }
 
-    return NextResponse.json({ order });
+    // Check if tracking number is being added (wasn't there before but is now)
+    const isAddingTrackingNumber = !order.trackingNumber && data.trackingNumber;
+
+    // Update the order
+    const updatedOrder = await Order.findByIdAndUpdate(
+      id,
+      { 
+        $set: {
+          ...data,
+          // Update status to "shipped" if tracking number is being added
+          ...(isAddingTrackingNumber && !data.status ? { status: "shipped" } : {}),
+        }
+      },
+      { new: true }
+    ).lean();
+
+    if (!updatedOrder) {
+      return NextResponse.json(
+        { error: "Order not found" },
+        { status: 404 }
+      );
+    }
+
+    // Send tracking email to customer if tracking number was added
+    if (isAddingTrackingNumber && updatedOrder.trackingNumber && updatedOrder.email) {
+      try {
+        await sendTrackingEmail(updatedOrder.email, {
+          orderNumber: updatedOrder._id.toString().slice(-8).toUpperCase(),
+          trackingNumber: updatedOrder.trackingNumber,
+          items: updatedOrder.items.map(item => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          shippingAddress: updatedOrder.shippingAddress,
+        });
+      } catch (emailError) {
+        console.error("Failed to send tracking email:", emailError);
+        // Don't fail the update if email fails
+      }
+    }
+
+    return NextResponse.json({ order: updatedOrder });
   } catch (error) {
     console.error("Error updating order:", error);
     return NextResponse.json(

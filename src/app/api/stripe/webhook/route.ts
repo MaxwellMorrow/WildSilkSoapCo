@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import dbConnect from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
 import { getStripe } from "@/lib/stripe";
+import { sendOrderConfirmationEmail, sendNewOrderEmail } from "@/lib/email";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
 
@@ -57,9 +58,19 @@ export async function POST(request: NextRequest) {
       const total = subtotal + shipping;
 
       // Create the order
-      await Order.create({
+      const customerEmail = session.customer_details?.email || session.customer_email || "";
+      const shippingAddressObj = {
+        name: shippingDetails?.name || session.customer_details?.name || "",
+        street: shippingAddress?.line1 || "",
+        city: shippingAddress?.city || "",
+        state: shippingAddress?.state || "",
+        zip: shippingAddress?.postal_code || "",
+        country: shippingAddress?.country || "US",
+      };
+
+      const newOrder = await Order.create({
         user: session.metadata?.userId || undefined,
-        email: session.customer_details?.email || session.customer_email || "",
+        email: customerEmail,
         items: items.map((item: { productId: string; name: string; price: number; quantity: number; image?: string }) => ({
           product: item.productId,
           name: item.name,
@@ -67,14 +78,7 @@ export async function POST(request: NextRequest) {
           quantity: item.quantity,
           image: item.image || undefined,
         })),
-        shippingAddress: {
-          name: shippingDetails?.name || session.customer_details?.name || "",
-          street: shippingAddress?.line1 || "",
-          city: shippingAddress?.city || "",
-          state: shippingAddress?.state || "",
-          zip: shippingAddress?.postal_code || "",
-          country: shippingAddress?.country || "US",
-        },
+        shippingAddress: shippingAddressObj,
         subtotal,
         shippingCost: shipping,
         tax: 0, // Simplified - no tax calculation
@@ -86,6 +90,50 @@ export async function POST(request: NextRequest) {
       });
 
       console.log("Order created for session:", session.id);
+
+      // Send order confirmation email to customer
+      if (customerEmail) {
+        try {
+          await sendOrderConfirmationEmail(customerEmail, {
+            orderNumber: newOrder._id.toString().slice(-8).toUpperCase(),
+            items: items.map((item: { name: string; price: number; quantity: number; image?: string }) => ({
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+              image: item.image || undefined,
+            })),
+            subtotal,
+            shippingCost: shipping,
+            total,
+            shippingAddress: shippingAddressObj,
+          });
+        } catch (emailError) {
+          console.error("Failed to send order confirmation email:", emailError);
+          // Don't fail the webhook if email fails
+        }
+      }
+
+      // Send new order email to owner
+      try {
+        const ownerEmail = process.env.OWNER_EMAIL || "wildsilksoapco@gmail.com";
+        await sendNewOrderEmail(ownerEmail, {
+          orderNumber: newOrder._id.toString().slice(-8).toUpperCase(),
+          orderId: newOrder._id.toString(),
+          customerEmail,
+          items: items.map((item: { name: string; price: number; quantity: number }) => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          subtotal,
+          shippingCost: shipping,
+          total,
+          shippingAddress: shippingAddressObj,
+        });
+      } catch (emailError) {
+        console.error("Failed to send new order email to owner:", emailError);
+        // Don't fail the webhook if email fails
+      }
     }
 
     return NextResponse.json({ received: true });

@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
 import { getSquareClient, getSquareLocationId } from "@/lib/square";
-import { sendOrderConfirmationEmail } from "@/lib/email";
-import { WebhooksHelper } from "square";
+import { sendOrderConfirmationEmail, sendNewOrderEmail } from "@/lib/email";
+import { WebhooksHelper, OrderLineItem } from "square";
 
 const webhookSecret = process.env.SQUARE_WEBHOOK_SECRET || "";
 const notificationUrl = process.env.SQUARE_WEBHOOK_URL || "";
@@ -186,7 +186,7 @@ export async function POST(request: NextRequest) {
         let subtotal = 0;
         let shippingCost = 0;
 
-        lineItems.forEach((item: any) => {
+        lineItems.forEach((item: OrderLineItem) => {
           const itemTotal = Number(item.basePriceMoney?.amount || 0) / 100;
           if (item.name === "Shipping") {
             shippingCost = itemTotal;
@@ -253,6 +253,31 @@ export async function POST(request: NextRequest) {
             });
           } catch (emailError) {
             console.error("Failed to send order confirmation email:", emailError);
+            // Don't fail the webhook if email fails
+          }
+        }
+
+        // Send new order email to owner
+        if (payment.status === "COMPLETED" || payment.status === "APPROVED") {
+          try {
+            const ownerEmail = process.env.OWNER_EMAIL || "wildsilksoapco@gmail.com";
+            await sendNewOrderEmail(ownerEmail, {
+              orderNumber: newOrder._id.toString().slice(-8).toUpperCase(),
+              orderId: newOrder._id.toString(),
+              customerEmail,
+              items: items.map((item: { name: string; price: number; quantity: number }) => ({
+                name: item.name,
+                quantity: item.quantity,
+                price: item.price,
+              })),
+              subtotal,
+              shippingCost,
+              total,
+              shippingAddress,
+              squareOrderId: orderId,
+            });
+          } catch (emailError) {
+            console.error("Failed to send new order email to owner:", emailError);
             // Don't fail the webhook if email fails
           }
         }

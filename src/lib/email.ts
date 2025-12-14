@@ -462,3 +462,315 @@ export async function sendPasswordResetEmail(
     return null;
   }
 }
+
+export async function sendNewOrderEmail(
+  ownerEmail: string,
+  order: {
+    orderNumber: string;
+    orderId: string;
+    customerEmail: string;
+    items: Array<{ name: string; quantity: number; price: number }>;
+    subtotal: number;
+    shippingCost: number;
+    total: number;
+    shippingAddress: {
+      name: string;
+      street: string;
+      city: string;
+      state: string;
+      zip: string;
+      country: string;
+    };
+    squareOrderId?: string;
+  }
+) {
+  const transporter = createTransporter();
+
+  if (!transporter) {
+    console.warn("Gmail credentials not configured (GMAIL_USER and GMAIL_APP_PASSWORD), skipping email send");
+    return null;
+  }
+
+  try {
+    const storeName = process.env.NEXT_PUBLIC_STORE_NAME || "Wild Silk Soap Co.";
+    const fromEmail = process.env.GMAIL_USER || "";
+    const pirateShipUrl = "https://ship.pirateship.com/import";
+
+    const info = await transporter.sendMail({
+      from: `"${storeName}" <${fromEmail}>`,
+      to: ownerEmail,
+      subject: `New Order Received - ${order.orderNumber}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>New Order Received</title>
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #2D3436; background-color: #FDF8F3; padding: 20px; margin: 0;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #D4A574 0%, #B88B5D 100%); padding: 40px 30px; text-align: center;">
+              <h1 style="color: #FFFFFF; margin: 0; font-size: 32px; font-weight: 600; font-family: 'Georgia', serif;">
+                New Order Received!
+              </h1>
+            </div>
+
+            <!-- Content -->
+            <div style="padding: 40px 30px;">
+              <div style="text-align: center; margin-bottom: 30px;">
+                <div style="width: 64px; height: 64px; background-color: #A8C09A; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+                  <svg style="width: 32px; height: 32px; color: #FFFFFF;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h2 style="color: #2D3436; margin: 0 0 10px 0; font-size: 28px; font-weight: 600;">
+                  Order #${order.orderNumber}
+                </h2>
+                <p style="color: #636E72; margin: 0; font-size: 16px;">
+                  A new order has been placed and requires your attention.
+                </p>
+              </div>
+
+              <!-- Order Number -->
+              <div style="background-color: #FDF8F3; border-left: 4px solid #D4A574; padding: 20px; margin-bottom: 30px; border-radius: 4px;">
+                <p style="margin: 0; font-size: 14px; color: #636E72; font-weight: 500;">
+                  Customer Email
+                </p>
+                <p style="margin: 8px 0 0 0; font-size: 16px; color: #2D3436; font-weight: 600;">
+                  ${order.customerEmail}
+                </p>
+              </div>
+
+              <!-- Order Items -->
+              <div style="margin-bottom: 30px;">
+                <h3 style="color: #2D3436; margin: 0 0 20px 0; font-size: 20px; font-weight: 600; border-bottom: 2px solid #F0E6D8; padding-bottom: 10px;">
+                  Order Details
+                </h3>
+                ${order.items.map(item => {
+                  const escapedName = item.name.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+                  return `
+                  <div style="display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #F0E6D8;">
+                    <div>
+                      <p style="margin: 0; font-size: 16px; color: #2D3436; font-weight: 500;">
+                        ${escapedName}
+                      </p>
+                      <p style="margin: 4px 0 0 0; font-size: 14px; color: #636E72;">
+                        Quantity: ${item.quantity}
+                      </p>
+                    </div>
+                    <p style="margin: 0; font-size: 16px; color: #2D3436; font-weight: 600;">
+                      $${(item.price * item.quantity).toFixed(2)}
+                    </p>
+                  </div>
+                `;
+                }).join("")}
+              </div>
+
+              <!-- Totals -->
+              <div style="background-color: #FDF8F3; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                  <span style="color: #636E72; font-size: 16px;">Subtotal</span>
+                  <span style="color: #2D3436; font-size: 16px; font-weight: 500;">$${order.subtotal.toFixed(2)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                  <span style="color: #636E72; font-size: 16px;">Shipping</span>
+                  <span style="color: #2D3436; font-size: 16px; font-weight: 500;">
+                    ${order.shippingCost === 0 ? "Free" : `$${order.shippingCost.toFixed(2)}`}
+                  </span>
+                </div>
+                <div style="border-top: 2px solid #D4A574; padding-top: 15px; margin-top: 15px; display: flex; justify-content: space-between;">
+                  <span style="color: #2D3436; font-size: 18px; font-weight: 600;">Total</span>
+                  <span style="color: #2D3436; font-size: 20px; font-weight: 700;">$${order.total.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <!-- Shipping Address -->
+              <div style="margin-bottom: 30px;">
+                <h3 style="color: #2D3436; margin: 0 0 15px 0; font-size: 20px; font-weight: 600; border-bottom: 2px solid #F0E6D8; padding-bottom: 10px;">
+                  Shipping Address
+                </h3>
+                <div style="color: #636E72; font-size: 16px; line-height: 1.8;">
+                  <p style="margin: 0; font-weight: 500; color: #2D3436;">${order.shippingAddress.name}</p>
+                  <p style="margin: 4px 0 0 0;">${order.shippingAddress.street}</p>
+                  <p style="margin: 4px 0 0 0;">
+                    ${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.zip}
+                  </p>
+                  <p style="margin: 4px 0 0 0;">${order.shippingAddress.country}</p>
+                </div>
+              </div>
+
+              <!-- Pirate Ship CTA -->
+              <div style="background-color: #F0E6D8; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <h3 style="color: #2D3436; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">
+                  Next Steps
+                </h3>
+                <p style="margin: 0 0 20px 0; color: #636E72; font-size: 15px; line-height: 1.8;">
+                  Import this order to Pirate Ship to create a shipping label.
+                </p>
+                <div style="text-align: center;">
+                  <a href="${pirateShipUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: linear-gradient(135deg, #D4A574 0%, #B88B5D 100%); color: #FFFFFF; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    Import to Pirate Ship
+                  </a>
+                </div>
+                ${order.squareOrderId ? `
+                <p style="margin: 20px 0 0 0; color: #636E72; font-size: 12px; text-align: center; font-family: 'Courier New', monospace;">
+                  Square Order ID: ${order.squareOrderId}
+                </p>
+                ` : ""}
+              </div>
+
+              <!-- Footer -->
+              <div style="text-align: center; padding-top: 30px; border-top: 1px solid #F0E6D8;">
+                <p style="margin: 0; color: #636E72; font-size: 12px;">
+                  © ${new Date().getFullYear()} ${storeName}. All rights reserved.
+                </p>
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    });
+
+    console.log("New order email sent to owner:", info.messageId);
+    return info;
+  } catch (error) {
+    console.error("Failed to send new order email:", error);
+    // Don't throw - email failures shouldn't break order processing
+    return null;
+  }
+}
+
+export async function sendTrackingEmail(
+  customerEmail: string,
+  order: {
+    orderNumber: string;
+    trackingNumber: string;
+    items: Array<{ name: string; quantity: number; price: number }>;
+    shippingAddress: {
+      name: string;
+      street: string;
+      city: string;
+      state: string;
+      zip: string;
+      country: string;
+    };
+  }
+) {
+  const transporter = createTransporter();
+
+  if (!transporter) {
+    console.warn("Gmail credentials not configured (GMAIL_USER and GMAIL_APP_PASSWORD), skipping email send");
+    return null;
+  }
+
+  try {
+    const storeName = process.env.NEXT_PUBLIC_STORE_NAME || "Wild Silk Soap Co.";
+    const fromEmail = process.env.GMAIL_USER || "";
+
+    const info = await transporter.sendMail({
+      from: `"${storeName}" <${fromEmail}>`,
+      to: customerEmail,
+      subject: `Your Order Has Shipped - ${order.orderNumber}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Your Order Has Shipped</title>
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #2D3436; background-color: #FDF8F3; padding: 20px; margin: 0;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #D4A574 0%, #B88B5D 100%); padding: 40px 30px; text-align: center;">
+              <h1 style="color: #FFFFFF; margin: 0; font-size: 32px; font-weight: 600; font-family: 'Georgia', serif;">
+                ${storeName}
+              </h1>
+              <p style="color: #FFFFFF; margin: 8px 0 0 0; font-size: 14px; opacity: 0.9;">
+                Hand Poured • Skin Loving
+              </p>
+            </div>
+
+            <!-- Content -->
+            <div style="padding: 40px 30px;">
+              <div style="text-align: center; margin-bottom: 30px;">
+                <div style="width: 64px; height: 64px; background-color: #A8C09A; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+                  <svg style="width: 32px; height: 32px; color: #FFFFFF;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h2 style="color: #2D3436; margin: 0 0 10px 0; font-size: 28px; font-weight: 600;">
+                  Your Order Has Shipped!
+                </h2>
+                <p style="color: #636E72; margin: 0; font-size: 16px;">
+                  Order #${order.orderNumber} is on its way.
+                </p>
+              </div>
+
+              <!-- Tracking Number -->
+              <div style="background-color: #FDF8F3; border-left: 4px solid #A8C09A; padding: 20px; margin-bottom: 30px; border-radius: 4px;">
+                <p style="margin: 0; font-size: 14px; color: #636E72; font-weight: 500;">
+                  Tracking Number
+                </p>
+                <p style="margin: 8px 0 0 0; font-size: 20px; color: #2D3436; font-family: 'Courier New', monospace; font-weight: 600;">
+                  ${order.trackingNumber}
+                </p>
+              </div>
+
+              <!-- Shipping Address -->
+              <div style="margin-bottom: 30px;">
+                <h3 style="color: #2D3436; margin: 0 0 15px 0; font-size: 20px; font-weight: 600; border-bottom: 2px solid #F0E6D8; padding-bottom: 10px;">
+                  Shipping To
+                </h3>
+                <div style="color: #636E72; font-size: 16px; line-height: 1.8;">
+                  <p style="margin: 0; font-weight: 500; color: #2D3436;">${order.shippingAddress.name}</p>
+                  <p style="margin: 4px 0 0 0;">${order.shippingAddress.street}</p>
+                  <p style="margin: 4px 0 0 0;">
+                    ${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.zip}
+                  </p>
+                  <p style="margin: 4px 0 0 0;">${order.shippingAddress.country}</p>
+                </div>
+              </div>
+
+              <!-- What's Next -->
+              <div style="background-color: #F0E6D8; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <h3 style="color: #2D3436; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">
+                  What's Next?
+                </h3>
+                <ul style="margin: 0; padding-left: 20px; color: #636E72; font-size: 15px; line-height: 1.8;">
+                  <li>Use the tracking number above to follow your package</li>
+                  <li>Your order should arrive within 3-5 business days</li>
+                  <li>You'll receive updates as your package travels</li>
+                </ul>
+              </div>
+
+              <!-- Footer -->
+              <div style="text-align: center; padding-top: 30px; border-top: 1px solid #F0E6D8;">
+                <p style="margin: 0 0 10px 0; color: #636E72; font-size: 14px;">
+                  Questions? Reply to this email or contact us at{" "}
+                  <a href="mailto:${fromEmail}" style="color: #D4A574; text-decoration: none; font-weight: 500;">
+                    ${fromEmail}
+                  </a>
+                </p>
+                <p style="margin: 0; color: #636E72; font-size: 12px;">
+                  © ${new Date().getFullYear()} ${storeName}. All rights reserved.
+                </p>
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    });
+
+    console.log("Tracking email sent:", info.messageId);
+    return info;
+  } catch (error) {
+    console.error("Failed to send tracking email:", error);
+    // Don't throw - email failures shouldn't break the flow
+    return null;
+  }
+}
