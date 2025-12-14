@@ -136,7 +136,17 @@ export async function POST(request: NextRequest) {
 
       // Retrieve the order from Square to get order details
       try {
-        const locationId = getSquareLocationId();
+        // Use the location_id from the payment, not from environment variables
+        // This ensures we're using the correct location where the payment was actually made
+        const locationId = payment.location_id || getSquareLocationId();
+        
+        if (!locationId) {
+          console.error("No location_id found in payment and SQUARE_LOCATION_ID not configured");
+          return NextResponse.json({ received: true });
+        }
+        
+        console.log("Using location_id:", locationId, "to retrieve order:", orderId);
+        
         const orderResponse = await squareClient.orders.batchGet({
           locationId,
           orderIds: [orderId],
