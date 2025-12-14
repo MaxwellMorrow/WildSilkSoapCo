@@ -149,12 +149,12 @@ export async function POST(request: NextRequest) {
         // recipient.emailAddress is the correct property name in Square SDK
         const customerEmail = recipient?.emailAddress || payment.buyer_email_address || "";
         const shippingAddress = {
-          name: recipient?.displayName || `${recipient?.givenName || ""} ${recipient?.familyName || ""}`.trim() || "Customer",
+          name: recipient?.displayName || "Customer",
           street: address?.addressLine1 || "",
           city: address?.locality || "",
           state: address?.administrativeDistrictLevel1 || "",
           zip: address?.postalCode || "",
-          country: address?.countryCode || "US",
+          country: address?.country || "US",
         };
 
         // Create the order in our database
