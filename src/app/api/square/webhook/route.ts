@@ -3,9 +3,10 @@ import dbConnect from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
 import { getSquareClient, getSquareLocationId } from "@/lib/square";
 import { sendOrderConfirmationEmail } from "@/lib/email";
-import crypto from "crypto";
+import { WebhooksHelper } from "square";
 
 const webhookSecret = process.env.SQUARE_WEBHOOK_SECRET || "";
+const notificationUrl = process.env.SQUARE_WEBHOOK_URL || "";
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,15 +35,31 @@ export async function POST(request: NextRequest) {
 
     // Verify webhook signature if secret is configured
     if (webhookSecret && signature) {
-      // For Square webhooks, the signature is HMAC-SHA256 of the raw body
-      const hash = crypto
-        .createHmac("sha256", webhookSecret)
-        .update(body)
-        .digest("base64");
+      // Square's signature verification requires the notification URL
+      // The URL MUST match exactly what's configured in Square Dashboard
+      // Priority: 1) Environment variable, 2) Constructed from request
+      let webhookUrl = notificationUrl;
+      
+      if (!webhookUrl) {
+        // Construct URL from request - must match exactly what's in Square Dashboard
+        webhookUrl = `${request.nextUrl.origin}${request.nextUrl.pathname}`;
+        console.warn(`SQUARE_WEBHOOK_URL not set, using constructed URL: ${webhookUrl}`);
+        console.warn("⚠️  Ensure this URL matches EXACTLY what's configured in Square Dashboard");
+      }
 
-      if (hash !== signature) {
+      // Use Square's WebhooksHelper to verify the signature
+      // This uses HMAC-SHA256 of: signature key + notification URL + raw body
+      // The notification URL must match EXACTLY what's in Square's webhook subscription
+      const isValid = await WebhooksHelper.verifySignature({
+        requestBody: body,
+        signatureHeader: signature,
+        signatureKey: webhookSecret,
+        notificationUrl: webhookUrl,
+      });
+
+      if (!isValid) {
         console.error("Webhook signature verification failed");
-        console.error("Expected signature (first 20 chars):", hash.substring(0, 20));
+        console.error("Notification URL used:", webhookUrl);
         console.error("Received signature (first 20 chars):", signature.substring(0, 20));
         return NextResponse.json(
           { error: "Webhook signature verification failed" },
