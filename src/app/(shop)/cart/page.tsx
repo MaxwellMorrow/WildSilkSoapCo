@@ -13,7 +13,7 @@ interface CartItem {
 }
 
 export default function CartPage() {
-  const { status } = useSession();
+  const { status, data: session } = useSession();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -53,21 +53,33 @@ export default function CartPage() {
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-  const shipping = subtotal > 50 ? 0 : 5.99;
+  const shipping = subtotal >= 100 ? 0 : 10;
   const total = subtotal + shipping;
 
   const handleCheckout = async () => {
     if (cart.length === 0) return;
+    
+    // Require authentication before checkout
+    if (status !== "authenticated") {
+      // Redirect to login with return URL
+      window.location.href = `/login?callbackUrl=${encodeURIComponent("/cart")}`;
+      return;
+    }
+
     setIsCheckingOut(true);
 
     try {
-      const res = await fetch("/api/stripe/checkout", {
+      const res = await fetch("/api/square/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items: cart }),
       });
 
       const data = await res.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
 
       if (data.url) {
         window.location.href = data.url;
@@ -76,7 +88,7 @@ export default function CartPage() {
       }
     } catch (error) {
       console.error("Checkout error:", error);
-      alert("Something went wrong. Please try again.");
+      alert(error instanceof Error ? error.message : "Something went wrong. Please try again.");
       setIsCheckingOut(false);
     }
   };
@@ -236,9 +248,9 @@ export default function CartPage() {
                     )}
                   </span>
                 </div>
-                {subtotal < 50 && (
+                {subtotal < 100 && (
                   <p className="text-sm text-sage">
-                    Add ${(50 - subtotal).toFixed(2)} more for free shipping!
+                    Add ${(100 - subtotal).toFixed(2)} more for free shipping!
                   </p>
                 )}
                 <div className="border-t border-cream-dark pt-3 flex justify-between font-semibold text-charcoal text-lg">
@@ -248,20 +260,21 @@ export default function CartPage() {
               </div>
 
               {status !== "authenticated" && (
-                <div className="bg-cream rounded-xl p-4 mb-4">
-                  <p className="text-sm text-charcoal-light">
-                    <Link href="/login" className="text-honey-dark font-medium hover:underline">
-                      Sign in
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+                  <p className="text-sm text-amber-800">
+                    <strong>Sign in required for checkout.</strong>{" "}
+                    <Link href={`/login?callbackUrl=${encodeURIComponent("/cart")}`} className="text-honey-dark font-medium hover:underline">
+                      Sign in or create an account
                     </Link>{" "}
-                    for faster checkout and order tracking.
+                    to proceed.
                   </p>
                 </div>
               )}
 
               <button
                 onClick={handleCheckout}
-                disabled={isCheckingOut}
-                className="w-full bg-honey hover:bg-honey-dark disabled:bg-honey/50 text-white font-semibold py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
+                disabled={isCheckingOut || status !== "authenticated"}
+                className="w-full bg-honey hover:bg-honey-dark disabled:bg-honey/50 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 {isCheckingOut ? (
                   <>
@@ -271,9 +284,16 @@ export default function CartPage() {
                     </svg>
                     Redirecting to Checkout...
                   </>
-                ) : (
+                ) : status === "authenticated" ? (
                   <>
                     Proceed to Checkout
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </>
+                ) : (
+                  <>
+                    Sign In to Checkout
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>
@@ -282,7 +302,7 @@ export default function CartPage() {
               </button>
 
               <p className="text-center text-xs text-charcoal-light mt-4">
-                Secure checkout powered by Stripe
+                Secure checkout powered by Square
               </p>
             </div>
 

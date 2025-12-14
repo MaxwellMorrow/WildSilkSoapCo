@@ -14,7 +14,7 @@ interface Product {
   featured: boolean;
 }
 
-const categories = ["All", "Bar Soap", "Liquid Soap", "Bath Bombs", "Gift Sets", "Accessories"];
+const categories = ["All", "Bar Soaps", "Creams", "Soap Dishes", "Gift Sets"];
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import User from "@/lib/models/User";
+import { sendAccountConfirmationEmail } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,6 +54,12 @@ export async function POST(request: NextRequest) {
       password,
       name,
       role: "customer",
+    });
+
+    // Send confirmation email (non-blocking - don't fail registration if email fails)
+    sendAccountConfirmationEmail(user.email, user.name).catch((error) => {
+      console.error("Failed to send account confirmation email:", error);
+      // Email failure shouldn't break registration
     });
 
     return NextResponse.json(

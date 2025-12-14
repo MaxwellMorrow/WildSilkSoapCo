@@ -40,6 +40,8 @@ export interface IOrder extends Document {
   total: number;
   stripeSessionId?: string;
   stripePaymentIntentId?: string;
+  squarePaymentLinkId?: string;
+  squareOrderId?: string;
   paymentStatus: PaymentStatus;
   shippingLabel?: IShippingLabel;
   trackingNumber?: string;
@@ -128,6 +130,12 @@ const OrderSchema = new Schema<IOrder>(
     stripePaymentIntentId: {
       type: String,
     },
+    squarePaymentLinkId: {
+      type: String,
+    },
+    squareOrderId: {
+      type: String,
+    },
     paymentStatus: {
       type: String,
       enum: ["pending", "completed", "failed", "refunded"],
@@ -161,6 +169,7 @@ OrderSchema.index({ status: 1 });
 OrderSchema.index({ paymentStatus: 1 });
 OrderSchema.index({ createdAt: -1 });
 OrderSchema.index({ stripeSessionId: 1 });
+OrderSchema.index({ squarePaymentLinkId: 1 });
 
 // Prevent model recompilation in development
 const Order: Model<IOrder> =

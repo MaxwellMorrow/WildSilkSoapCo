@@ -82,10 +82,12 @@ MONGODB_URI=mongodb+srv://...
 NEXTAUTH_SECRET=your-secret-key
 NEXTAUTH_URL=http://localhost:3000
 
-# Stripe
-STRIPE_SECRET_KEY=sk_test_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+# Square Payments
+SQUARE_ACCESS_TOKEN=EAAxxxxxxxxxxxxx
+SQUARE_LOCATION_ID=LOCxxxxxxxxxxxxx
+SQUARE_ENVIRONMENT=sandbox
+SQUARE_WEBHOOK_SECRET=your-webhook-secret
+NEXT_PUBLIC_SQUARE_APPLICATION_ID=your-application-id
 
 # Cloudinary
 CLOUDINARY_CLOUD_NAME=your-cloud-name
@@ -94,6 +96,10 @@ CLOUDINARY_API_SECRET=your-api-secret
 
 # EasyPost
 EASYPOST_API_KEY=your-easypost-key
+
+# Email (Gmail) - Optional but recommended for order confirmations
+GMAIL_USER=your-email@gmail.com
+GMAIL_APP_PASSWORD=your-app-password
 
 # Store (optional)
 NEXT_PUBLIC_STORE_NAME=Wild Silk Soap Co.
@@ -113,10 +119,10 @@ NEXT_PUBLIC_STORE_NAME=Wild Silk Soap Co.
 
 5. Deploy! Vercel will automatically build and deploy your site
 
-6. Set up Stripe webhook:
-   - In Stripe Dashboard, go to Developers > Webhooks
-   - Add endpoint: `https://your-domain.vercel.app/api/stripe/webhook`
-   - Select event: `checkout.session.completed`
+6. Set up Square webhook:
+   - In Square Developer Dashboard, go to Webhooks
+   - Add endpoint: `https://your-domain.vercel.app/api/square/webhook`
+   - Select events: `payment.created`, `payment.updated`
    - Copy the webhook secret to Vercel env vars
 
 ## Creating an Admin User
@@ -188,6 +194,16 @@ src/
 1. Create account at [easypost.com](https://easypost.com)
 2. Get API key from Dashboard
 3. Use test mode for development (free)
+
+### Gmail (Email Service) - Optional
+1. Go to your Google Account settings
+2. Enable 2-Step Verification (required for App Passwords)
+3. Go to Security > App Passwords
+4. Generate a new App Password for "Mail"
+5. Copy the 16-character password
+6. Add `GMAIL_USER` (your Gmail address) and `GMAIL_APP_PASSWORD` to env vars
+7. **Note**: Without Gmail configured, order confirmations won't be sent (Square sends basic payment receipts)
+8. **Limits**: Free Gmail accounts can send up to 500 emails per day
 
 ## License
 

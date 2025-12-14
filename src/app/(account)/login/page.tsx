@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Logo from "@/components/Logo";
 
 function LoginForm() {
   const router = useRouter();
@@ -47,7 +48,10 @@ function LoginForm() {
     <div className="w-full max-w-md">
       <div className="bg-white rounded-3xl shadow-lg p-8">
         <div className="text-center mb-8">
-          <h1 className="font-[family-name:var(--font-cormorant)] text-3xl font-semibold text-charcoal mb-2">
+          <div className="flex justify-center mb-4">
+            <Logo size="md" showText={false} />
+          </div>
+          <h1 className="font-script text-3xl font-medium text-sage-darkest mb-2">
             Welcome Back
           </h1>
           <p className="text-charcoal-light">
@@ -56,7 +60,7 @@ function LoginForm() {
         </div>
 
         {errorMessage && (
-          <div className="bg-rose/20 text-red-700 px-4 py-3 rounded-xl mb-6 text-sm">
+          <div className="bg-berry-pink/20 text-red-700 px-4 py-3 rounded-xl mb-6 text-sm">
             {errorMessage}
           </div>
         )}
@@ -73,7 +77,7 @@ function LoginForm() {
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-4 rounded-xl border border-cream-dark bg-cream/50 text-charcoal placeholder-charcoal-light focus:outline-none focus:border-honey focus:ring-2 focus:ring-honey/20 transition-all"
+              className="w-full px-4 py-4 rounded-xl border border-sage-light bg-cream/50 text-sage-darkest placeholder-charcoal-light focus:outline-none focus:border-berry-purple focus:ring-2 focus:ring-berry-purple/20 transition-all"
               placeholder="you@example.com"
             />
           </div>
@@ -89,7 +93,7 @@ function LoginForm() {
               required
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-4 py-4 rounded-xl border border-cream-dark bg-cream/50 text-charcoal placeholder-charcoal-light focus:outline-none focus:border-honey focus:ring-2 focus:ring-honey/20 transition-all"
+              className="w-full px-4 py-4 rounded-xl border border-sage-light bg-cream/50 text-sage-darkest placeholder-charcoal-light focus:outline-none focus:border-berry-purple focus:ring-2 focus:ring-berry-purple/20 transition-all"
               placeholder="Enter your password"
             />
           </div>
@@ -97,7 +101,7 @@ function LoginForm() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-honey hover:bg-honey-dark disabled:bg-honey/50 text-white font-semibold py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-sage-darkest hover:bg-sage-dark disabled:bg-sage-darkest/50 text-white font-semibold py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
@@ -113,10 +117,19 @@ function LoginForm() {
           </button>
         </form>
 
-        <div className="mt-8 text-center">
+        <div className="mt-6 text-center">
+          <Link 
+            href="/reset-password" 
+            className="text-berry-purple hover:text-berry-dark font-medium text-sm transition-colors"
+          >
+            Forgot your password?
+          </Link>
+        </div>
+
+        <div className="mt-6 text-center pt-6 border-t border-sage-light">
           <p className="text-charcoal-light">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-honey-dark hover:text-honey font-semibold">
+            <Link href="/register" className="text-berry-purple hover:text-berry-dark font-semibold transition-colors">
               Create one
             </Link>
           </p>
@@ -125,7 +138,7 @@ function LoginForm() {
 
       {/* Back to Shop */}
       <div className="text-center mt-6">
-        <Link href="/" className="text-charcoal-light hover:text-honey transition-colors text-sm inline-flex items-center gap-1">
+        <Link href="/" className="text-charcoal-light hover:text-berry-purple transition-colors text-sm inline-flex items-center gap-1">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
@@ -140,12 +153,13 @@ function LoadingFallback() {
   return (
     <div className="w-full max-w-md">
       <div className="bg-white rounded-3xl shadow-lg p-8 animate-pulse">
-        <div className="h-8 bg-cream-dark rounded w-48 mx-auto mb-4" />
-        <div className="h-4 bg-cream-dark rounded w-64 mx-auto mb-8" />
+        <div className="h-16 bg-sage-light rounded w-32 mx-auto mb-4" />
+        <div className="h-8 bg-sage-light rounded w-48 mx-auto mb-2" />
+        <div className="h-4 bg-sage-light rounded w-64 mx-auto mb-8" />
         <div className="space-y-5">
-          <div className="h-14 bg-cream-dark rounded-xl" />
-          <div className="h-14 bg-cream-dark rounded-xl" />
-          <div className="h-14 bg-cream-dark rounded-xl" />
+          <div className="h-14 bg-sage-light rounded-xl" />
+          <div className="h-14 bg-sage-light rounded-xl" />
+          <div className="h-14 bg-sage-light rounded-xl" />
         </div>
       </div>
     </div>
@@ -154,16 +168,11 @@ function LoadingFallback() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-cream flex flex-col">
+    <div className="min-h-screen bg-sage-lighter flex flex-col">
       {/* Header */}
       <header className="p-4">
-        <Link href="/" className="flex items-center gap-2 w-fit">
-          <div className="w-10 h-10 bg-honey rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-lg font-[family-name:var(--font-cormorant)]">W</span>
-          </div>
-          <span className="font-[family-name:var(--font-cormorant)] text-xl font-semibold text-charcoal">
-            Wild Silk
-          </span>
+        <Link href="/" className="w-fit">
+          <Logo size="sm" showText={true} />
         </Link>
       </header>
 

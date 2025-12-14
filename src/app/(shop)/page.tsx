@@ -51,7 +51,7 @@ export default function HomePage() {
               </div>
             </div>
             <p className="text-charcoal-light text-lg md:text-xl mb-10 leading-relaxed max-w-2xl mx-auto">
-              Each bar is lovingly crafted with premium natural ingredients, 
+              Each bar is crafted with premium ingredients, 
               bringing a touch of luxury to your daily self-care ritual.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -86,8 +86,8 @@ export default function HomePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
                   </svg>
                 ),
-                title: "All Natural",
-                description: "Made with organic oils, botanical extracts, and pure essential oils. No harsh chemicals, ever."
+                title: "Premium Ingredients",
+                description: "Made with botanical extracts, and essential oils. No harsh chemicals, ever."
               },
               {
                 icon: (
@@ -96,7 +96,7 @@ export default function HomePage() {
                   </svg>
                 ),
                 title: "Handcrafted",
-                description: "Each bar is carefully made in small batches with attention to detail and lots of love."
+                description: "Each bar is carefully made in small batches with attention to detail."
               },
               {
                 icon: (

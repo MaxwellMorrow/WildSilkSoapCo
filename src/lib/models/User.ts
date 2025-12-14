@@ -18,6 +18,8 @@ export interface IUser extends Document {
   name: string;
   addresses: IAddress[];
   role: "customer" | "admin";
+  passwordResetToken?: string;
+  passwordResetExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -66,6 +68,14 @@ const UserSchema = new Schema<IUser>(
       type: String,
       enum: ["customer", "admin"],
       default: "customer",
+    },
+    passwordResetToken: {
+      type: String,
+      select: false,
+    },
+    passwordResetExpires: {
+      type: Date,
+      select: false,
     },
   },
   {

@@ -53,18 +53,19 @@ export async function POST(request: NextRequest) {
           sum + item.price * item.quantity,
         0
       );
-      const shipping = subtotal > 50 ? 0 : 5.99;
+      const shipping = subtotal >= 100 ? 0 : 10;
       const total = subtotal + shipping;
 
       // Create the order
       await Order.create({
         user: session.metadata?.userId || undefined,
         email: session.customer_details?.email || session.customer_email || "",
-        items: items.map((item: { productId: string; name: string; price: number; quantity: number }) => ({
+        items: items.map((item: { productId: string; name: string; price: number; quantity: number; image?: string }) => ({
           product: item.productId,
           name: item.name,
           price: item.price,
           quantity: item.quantity,
+          image: item.image || undefined,
         })),
         shippingAddress: {
           name: shippingDetails?.name || session.customer_details?.name || "",

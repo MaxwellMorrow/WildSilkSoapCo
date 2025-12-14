@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       (sum: number, item: CartItem) => sum + item.price * item.quantity,
       0
     );
-    const shipping = subtotal > 50 ? 0 : 5.99;
+    const shipping = subtotal >= 100 ? 0 : 10;
 
     // Create line items for Stripe
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(
@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
             name: item.name,
             price: item.price,
             quantity: item.quantity,
+            image: item.image || "",
           }))
         ),
       },
