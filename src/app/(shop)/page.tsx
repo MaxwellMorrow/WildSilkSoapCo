@@ -38,13 +38,14 @@ export default function HomePage() {
       <section className="relative bg-sage-lighter overflow-hidden border-b border-sage-dark/20">
         <div className="relative max-w-7xl mx-auto px-4 py-20 md:py-28 lg:py-36">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="flex justify-center mb-8 animate-slide-up">
-              <div className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96">
+            <div className="flex justify-center items-center w-full mb-8 animate-slide-up">
+              <div className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 flex-shrink-0">
                 <Image
                   src="/logo.png"
                   alt="Wild Silk Soap Co."
                   fill
                   className="object-contain"
+                style={{ objectPosition: "52% 50%" }}
                   priority
                   sizes="(max-width: 768px) 256px, (max-width: 1024px) 320px, 384px"
                 />

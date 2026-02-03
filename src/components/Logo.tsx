@@ -40,6 +40,7 @@ export default function Logo({ size = "md", showText = true, className = "" }: L
             alt="Wild Silk Soap Co."
             fill
             className="object-contain"
+            style={{ objectPosition: "52% 50%" }}
             priority={size === "md"}
             sizes={sizes}
             onError={handleError}
