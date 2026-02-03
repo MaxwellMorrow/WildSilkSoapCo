@@ -24,14 +24,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate subtotal and shipping
-    const subtotal = items.reduce(
-      (sum: number, item: CartItem) => sum + item.price * item.quantity,
-      0
-    );
-    const shipping = subtotal >= 100 ? 0 : 10;
-
-    // Create line items for Stripe
+    // Charge only product total; shipping is calculated and added by the payment integration
+    // Create line items for Stripe (products only; no shipping line — payment integration adds shipping)
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(
       (item: CartItem) => ({
         price_data: {
@@ -45,20 +39,6 @@ export async function POST(request: NextRequest) {
         quantity: item.quantity,
       })
     );
-
-    // Add shipping as a line item if not free
-    if (shipping > 0) {
-      lineItems.push({
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: "Shipping",
-          },
-          unit_amount: Math.round(shipping * 100),
-        },
-        quantity: 1,
-      });
-    }
 
     // Build the success/cancel URLs
     const origin = request.headers.get("origin") || "http://localhost:3000";

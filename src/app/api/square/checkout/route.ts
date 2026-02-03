@@ -39,13 +39,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate subtotal and shipping
-    const subtotal = items.reduce(
-      (sum: number, item: CartItem) => sum + item.price * item.quantity,
-      0
-    );
-    const shipping = subtotal > 100 ? 0 : 10;
-
+    // Charge only product total; shipping is calculated and added by the payment integration
     const origin = request.headers.get("origin") || "http://localhost:3000";
     
     // Get Square credentials - these will throw if not configured
@@ -62,7 +56,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create line items for Square Order
+    // Create line items for Square Order (products only; no shipping line — payment integration adds shipping)
     const lineItems = items.map((item: CartItem) => ({
       name: item.name,
       quantity: item.quantity.toString(),
@@ -72,18 +66,6 @@ export async function POST(request: NextRequest) {
       },
       note: item.image ? `Image: ${item.image}` : undefined,
     }));
-
-    // Add shipping as a line item if not free
-    if (shipping > 0) {
-      lineItems.push({
-        name: "Shipping",
-        quantity: "1",
-        basePriceMoney: {
-          amount: BigInt(Math.round(shipping * 100)),
-          currency: "USD",
-        },
-      });
-    }
 
     // Create Order first (required for Payment Links with multiple items)
     const orderResponse = await squareClient.orders.create({
