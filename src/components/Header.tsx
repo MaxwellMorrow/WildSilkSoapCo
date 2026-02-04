@@ -39,7 +39,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-20">
           {/* Logo/Company Name - Left */}
           <Link href="/" className="text-sage-darkest hover:text-berry-purple transition-colors">
-            <h1 className="font-script text-2xl font-medium">
+            <h1 className="font-script text-2xl font-large">
               Wild Silk Soap Co.
             </h1>
           </Link>
