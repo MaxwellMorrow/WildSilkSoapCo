@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 
 interface CartItem {
   productId: string;
@@ -13,7 +12,6 @@ interface CartItem {
 }
 
 export default function CartPage() {
-  const { status, data: session } = useSession();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -58,14 +56,6 @@ export default function CartPage() {
 
   const handleCheckout = async () => {
     if (cart.length === 0) return;
-    
-    // Require authentication before checkout
-    if (status !== "authenticated") {
-      // Redirect to login with return URL
-      window.location.href = `/login?callbackUrl=${encodeURIComponent("/cart")}`;
-      return;
-    }
-
     setIsCheckingOut(true);
 
     try {
@@ -259,21 +249,9 @@ export default function CartPage() {
                 </div>
               </div>
 
-              {status !== "authenticated" && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
-                  <p className="text-sm text-amber-800">
-                    <strong>Sign in required for checkout.</strong>{" "}
-                    <Link href={`/login?callbackUrl=${encodeURIComponent("/cart")}`} className="text-honey-dark font-medium hover:underline">
-                      Sign in or create an account
-                    </Link>{" "}
-                    to proceed.
-                  </p>
-                </div>
-              )}
-
               <button
                 onClick={handleCheckout}
-                disabled={isCheckingOut || status !== "authenticated"}
+                disabled={isCheckingOut}
                 className="w-full bg-honey hover:bg-honey-dark disabled:bg-honey/50 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 {isCheckingOut ? (
@@ -284,16 +262,9 @@ export default function CartPage() {
                     </svg>
                     Redirecting to Checkout...
                   </>
-                ) : status === "authenticated" ? (
-                  <>
-                    Proceed to Checkout
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </>
                 ) : (
                   <>
-                    Sign In to Checkout
+                    Proceed to Checkout
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>

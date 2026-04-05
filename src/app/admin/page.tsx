@@ -1,6 +1,29 @@
 import Link from "next/link";
+import dbConnect from "@/lib/mongodb";
+import Order from "@/lib/models/Order";
+import Product from "@/lib/models/Product";
 
-export default function AdminDashboard() {
+async function getStats() {
+  await dbConnect();
+
+  const [totalOrders, revenueResult, totalProducts, pendingOrders] = await Promise.all([
+    Order.countDocuments(),
+    Order.aggregate([
+      { $match: { paymentStatus: "completed" } },
+      { $group: { _id: null, total: { $sum: "$total" } } },
+    ]),
+    Product.countDocuments({ active: true }),
+    Order.countDocuments({ status: "paid" }),
+  ]);
+
+  const revenue = revenueResult[0]?.total ?? 0;
+
+  return { totalOrders, revenue, totalProducts, pendingOrders };
+}
+
+export default async function AdminDashboard() {
+  const { totalOrders, revenue, totalProducts, pendingOrders } = await getStats();
+
   return (
     <div className="p-4 md:pl-72 animate-fade-in">
       <div className="mb-8">
@@ -15,10 +38,10 @@ export default function AdminDashboard() {
       {/* Quick Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
-          { label: "Total Orders", value: "0", icon: "📦", color: "bg-honey/10 text-honey-dark" },
-          { label: "Revenue", value: "$0", icon: "💰", color: "bg-sage/10 text-sage-dark" },
-          { label: "Products", value: "0", icon: "🧼", color: "bg-lavender/20 text-charcoal" },
-          { label: "Pending", value: "0", icon: "⏳", color: "bg-rose/20 text-charcoal" },
+          { label: "Total Orders", value: totalOrders.toString(), icon: "📦", color: "bg-honey/10 text-honey-dark" },
+          { label: "Revenue", value: `$${revenue.toFixed(2)}`, icon: "💰", color: "bg-sage/10 text-sage-dark" },
+          { label: "Products", value: totalProducts.toString(), icon: "🧼", color: "bg-lavender/20 text-charcoal" },
+          { label: "Awaiting Shipment", value: pendingOrders.toString(), icon: "⏳", color: "bg-rose/20 text-charcoal" },
         ].map((stat, i) => (
           <div key={i} className={`${stat.color} rounded-2xl p-5`}>
             <div className="text-2xl mb-2">{stat.icon}</div>
@@ -34,7 +57,7 @@ export default function AdminDashboard() {
           Quick Actions
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Link 
+          <Link
             href="/admin/products"
             className="flex items-center gap-4 bg-white p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow group"
           >
@@ -48,8 +71,8 @@ export default function AdminDashboard() {
               <p className="text-sm text-charcoal-light">Create a new soap listing</p>
             </div>
           </Link>
-          
-          <Link 
+
+          <Link
             href="/admin/orders"
             className="flex items-center gap-4 bg-white p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow group"
           >
@@ -66,7 +89,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Recent Activity Placeholder */}
+      {/* Recent Orders */}
       <div>
         <h2 className="font-[family-name:var(--font-cormorant)] text-xl font-semibold text-charcoal mb-4">
           Recent Orders
@@ -77,13 +100,20 @@ export default function AdminDashboard() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
           </div>
-          <p className="text-charcoal-light mb-2">No orders yet</p>
-          <p className="text-sm text-charcoal-light">
-            When customers place orders, they&apos;ll appear here.
-          </p>
+          {totalOrders === 0 ? (
+            <>
+              <p className="text-charcoal-light mb-2">No orders yet</p>
+              <p className="text-sm text-charcoal-light">
+                When customers place orders, they&apos;ll appear here.
+              </p>
+            </>
+          ) : (
+            <Link href="/admin/orders" className="text-honey-dark font-medium hover:underline">
+              View all {totalOrders} orders →
+            </Link>
+          )}
         </div>
       </div>
     </div>
   );
 }
-

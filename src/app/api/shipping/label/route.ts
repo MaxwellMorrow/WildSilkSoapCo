@@ -19,13 +19,19 @@ export async function POST(request: NextRequest) {
     const { orderId, shipmentId, rateId } = await request.json();
 
     const apiKey = process.env.EASYPOST_API_KEY;
+    const isDev = process.env.NODE_ENV === "development";
 
     if (!apiKey || apiKey === "placeholder") {
-      // Return mock label for development
+      if (!isDev) {
+        return NextResponse.json(
+          { error: "EASYPOST_API_KEY is not configured. Add it to your Vercel environment variables." },
+          { status: 500 }
+        );
+      }
+
+      // Mock label for local development only
       await dbConnect();
-      
       const mockTrackingNumber = `9400111899223${Math.floor(Math.random() * 1000000000)}`;
-      
       await Order.findByIdAndUpdate(orderId, {
         status: "shipped",
         trackingNumber: mockTrackingNumber,

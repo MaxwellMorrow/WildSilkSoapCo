@@ -33,7 +33,6 @@ interface Order {
   paymentStatus: string;
   trackingNumber?: string;
   squareOrderId?: string;
-  stripeSessionId?: string;
   createdAt: string;
   updatedAt: string;
 }

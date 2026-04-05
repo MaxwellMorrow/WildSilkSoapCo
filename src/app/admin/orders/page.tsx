@@ -36,7 +36,7 @@ const statusColors: { [key: string]: string } = {
   cancelled: "bg-red-100 text-red-800",
 };
 
-const statusOptions = ["all", "paid", "shipped", "delivered", "cancelled"];
+const statusOptions = ["all", "pending", "paid", "shipped", "delivered", "cancelled"];
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
