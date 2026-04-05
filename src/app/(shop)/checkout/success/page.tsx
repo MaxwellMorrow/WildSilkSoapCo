@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
-  const sessionId = searchParams.get("session_id");
+  const paymentLinkId = searchParams.get("payment_link_id");
 
   useEffect(() => {
     // Clear the cart after successful checkout
@@ -25,7 +25,7 @@ function CheckoutSuccessContent() {
       <h1 className="font-[family-name:var(--font-cormorant)] text-3xl md:text-4xl font-semibold text-charcoal mb-4">
         Thank You for Your Order!
       </h1>
-      
+
       <p className="text-charcoal-light text-lg mb-2">
         Your order has been confirmed and is being prepared.
       </p>
@@ -33,9 +33,9 @@ function CheckoutSuccessContent() {
         A confirmation email has been sent to your email address.
       </p>
 
-      {sessionId && (
+      {paymentLinkId && (
         <p className="text-sm text-charcoal-light mb-8">
-          Order Reference: <span className="font-mono">{sessionId.slice(-8)}</span>
+          Order Reference: <span className="font-mono">{paymentLinkId.slice(-8).toUpperCase()}</span>
         </p>
       )}
 

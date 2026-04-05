@@ -38,8 +38,6 @@ export interface IOrder extends Document {
   shippingCost: number;
   tax: number;
   total: number;
-  stripeSessionId?: string;
-  stripePaymentIntentId?: string;
   squarePaymentLinkId?: string;
   squareOrderId?: string;
   paymentStatus: PaymentStatus;
@@ -124,12 +122,6 @@ const OrderSchema = new Schema<IOrder>(
       required: true,
       min: 0,
     },
-    stripeSessionId: {
-      type: String,
-    },
-    stripePaymentIntentId: {
-      type: String,
-    },
     squarePaymentLinkId: {
       type: String,
     },
@@ -168,7 +160,6 @@ OrderSchema.index({ email: 1 });
 OrderSchema.index({ status: 1 });
 OrderSchema.index({ paymentStatus: 1 });
 OrderSchema.index({ createdAt: -1 });
-OrderSchema.index({ stripeSessionId: 1 });
 OrderSchema.index({ squarePaymentLinkId: 1 });
 
 // Prevent model recompilation in development

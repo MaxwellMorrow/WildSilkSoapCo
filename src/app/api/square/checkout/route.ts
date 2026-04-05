@@ -16,22 +16,6 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     const { items } = await request.json();
 
-    // Require authentication for checkout
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: "Authentication required. Please sign in to continue." },
-        { status: 401 }
-      );
-    }
-
-    // Require email from user
-    if (!session.user.email) {
-      return NextResponse.json(
-        { error: "User email is required for checkout." },
-        { status: 400 }
-      );
-    }
-
     if (!items || items.length === 0) {
       return NextResponse.json(
         { error: "No items in cart" },
@@ -56,7 +40,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create line items for Square Order (products only; no shipping line — payment integration adds shipping)
+    // Create line items for Square Payment Link
     const lineItems = items.map((item: CartItem) => ({
       name: item.name,
       quantity: item.quantity.toString(),
@@ -67,13 +51,13 @@ export async function POST(request: NextRequest) {
       note: item.image ? `Image: ${item.image}` : undefined,
     }));
 
-    // Create Order first (required for Payment Links with multiple items)
-    const orderResponse = await squareClient.orders.create({
+    const paymentLinkResponse = await squareClient.checkout.paymentLinks.create({
+      idempotencyKey: `payment-link-${Date.now()}-${Math.random().toString(36).substring(7)}`,
       order: {
         locationId,
         lineItems,
         metadata: {
-          userId: session?.user?.id || "",
+          ...(session?.user?.id ? { userId: session.user.id } : {}),
           items: JSON.stringify(
             items.map((item: CartItem) => ({
               productId: item.productId,
@@ -85,50 +69,11 @@ export async function POST(request: NextRequest) {
           ),
         },
       },
-      idempotencyKey: `order-${Date.now()}-${Math.random().toString(36).substring(7)}`,
-    });
-
-    if (orderResponse.errors && orderResponse.errors.length > 0) {
-      console.error("Square order creation errors:", orderResponse.errors);
-      throw new Error("Failed to create Square order");
-    }
-
-    const order = orderResponse.order;
-    if (!order || !order.id) {
-      throw new Error("Order not returned from Square");
-    }
-
-    // Create Payment Link from the Order
-    // Square Payment Links API requires the Order object WITHOUT read-only fields
-    // Rebuild order with only writable fields (locationId, lineItems, metadata)
-    // Read-only fields include: id, netAmounts, returnAmounts, tenders, refunds, version, createdAt, updatedAt, etc.
-    const orderForPaymentLink = {
-      locationId,
-      lineItems,
-      metadata: {
-        userId: session.user.id || "",
-        items: JSON.stringify(
-          items.map((item: CartItem) => ({
-            productId: item.productId,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            image: item.image || "",
-          }))
-        ),
-      },
-    };
-    
-    const paymentLinkResponse = await squareClient.checkout.paymentLinks.create({
-      idempotencyKey: `payment-link-${Date.now()}-${Math.random().toString(36).substring(7)}`,
-      order: orderForPaymentLink,
       checkoutOptions: {
         askForShippingAddress: true,
-        redirectUrl: `${origin}/checkout/success?payment_link_id={PAYMENT_LINK_ID}&order_id=${order.id}`,
+        redirectUrl: `${origin}/checkout/success?payment_link_id={PAYMENT_LINK_ID}`,
       },
-      prePopulatedData: {
-        buyerEmail: session.user.email,
-      },
+      prePopulatedData: session?.user?.email ? { buyerEmail: session.user.email } : undefined,
       description: `Order from ${origin}`,
     });
 
@@ -147,7 +92,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       url: paymentLinkUrl,
       paymentLinkId,
-      orderId: order.id,
     });
   } catch (error) {
     console.error("Square checkout error:", error);
