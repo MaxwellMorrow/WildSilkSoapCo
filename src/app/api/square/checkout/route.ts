@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
         locationId,
         lineItems,
         metadata: {
-          userId: session?.user?.id || "",
+          ...(session?.user?.id ? { userId: session.user.id } : {}),
           items: JSON.stringify(
             items.map((item: CartItem) => ({
               productId: item.productId,
