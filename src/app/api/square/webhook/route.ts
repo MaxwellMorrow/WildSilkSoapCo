@@ -5,11 +5,10 @@ import { getSquareClient, getSquareLocationId } from "@/lib/square";
 import { sendOrderConfirmationEmail, sendNewOrderEmail } from "@/lib/email";
 import { WebhooksHelper, OrderLineItem } from "square";
 
-const webhookSecret = process.env.SQUARE_WEBHOOK_SECRET || "";
-const notificationUrl = process.env.SQUARE_WEBHOOK_URL || "";
-
 export async function POST(request: NextRequest) {
   try {
+    const webhookSecret = process.env.SQUARE_WEBHOOK_SECRET || "";
+    const notificationUrl = process.env.SQUARE_WEBHOOK_URL || "";
     const body = await request.text();
     
     // Check headers case-insensitively (headers are typically lowercase, but be safe)

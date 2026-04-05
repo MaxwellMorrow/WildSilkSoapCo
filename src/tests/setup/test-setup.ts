@@ -11,13 +11,12 @@ vi.mock("next-auth", () => ({
   getServerSession: vi.fn().mockResolvedValue(null),
 }));
 
-// Prevent any real SMTP connections
-vi.mock("nodemailer", () => ({
-  default: {
-    createTransport: vi.fn().mockReturnValue({
-      sendMail: vi.fn().mockResolvedValue({ messageId: "test-msg-id" }),
-    }),
-  },
+// Mock email functions directly so we can assert on them in tests
+vi.mock("@/lib/email", () => ({
+  sendOrderConfirmationEmail: vi.fn().mockResolvedValue(null),
+  sendNewOrderEmail: vi.fn().mockResolvedValue(null),
+  sendTrackingEmail: vi.fn().mockResolvedValue(null),
+  sendAccountConfirmationEmail: vi.fn().mockResolvedValue(null),
 }));
 
 // Mock @/lib/square so no real Square API calls are made
