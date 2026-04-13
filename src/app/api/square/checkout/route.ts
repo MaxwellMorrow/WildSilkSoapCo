@@ -23,9 +23,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Charge only product total; shipping is calculated and added by the payment integration
     const origin = request.headers.get("origin") || "http://localhost:3000";
-    
+
     // Get Square credentials - these will throw if not configured
     let locationId: string;
     let squareClient;
@@ -40,16 +39,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Calculate subtotal to determine shipping cost ($10 for orders under $100, free otherwise)
+    const subtotal = items.reduce(
+      (sum: number, item: CartItem) => sum + item.price * item.quantity,
+      0
+    );
+    const shippingCents = subtotal >= 100 ? 0 : 1000;
+
     // Create line items for Square Payment Link
-    const lineItems = items.map((item: CartItem) => ({
-      name: item.name,
-      quantity: item.quantity.toString(),
-      basePriceMoney: {
-        amount: BigInt(Math.round(item.price * 100)), // Square uses amount in cents
-        currency: "USD",
-      },
-      note: item.image ? `Image: ${item.image}` : undefined,
-    }));
+    const lineItems = [
+      ...items.map((item: CartItem) => ({
+        name: item.name,
+        quantity: item.quantity.toString(),
+        basePriceMoney: {
+          amount: BigInt(Math.round(item.price * 100)), // Square uses amount in cents
+          currency: "USD",
+        },
+        note: item.image ? `Image: ${item.image}` : undefined,
+      })),
+      ...(shippingCents > 0
+        ? [
+            {
+              name: "Shipping",
+              quantity: "1",
+              basePriceMoney: {
+                amount: BigInt(shippingCents),
+                currency: "USD",
+              },
+            },
+          ]
+        : []),
+    ];
 
     const paymentLinkResponse = await squareClient.checkout.paymentLinks.create({
       idempotencyKey: `payment-link-${Date.now()}-${Math.random().toString(36).substring(7)}`,
