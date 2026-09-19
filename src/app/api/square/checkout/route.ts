@@ -39,12 +39,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate subtotal to determine shipping cost ($10 for orders under $100, free otherwise)
+    // Calculate subtotal to determine shipping cost ($12.50 for orders under $100, free otherwise)
     const subtotal = items.reduce(
       (sum: number, item: CartItem) => sum + item.price * item.quantity,
       0
     );
-    const shippingCents = subtotal >= 100 ? 0 : 1000;
+    const shippingCents = subtotal >= 100 ? 0 : 1250;
 
     // Create line items for Square Payment Link
     const lineItems = [

@@ -51,7 +51,7 @@ export default function CartPage() {
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-  const shipping = subtotal >= 100 ? 0 : 10;
+  const shipping = subtotal >= 100 ? 0 : 12.5;
   const total = subtotal + shipping;
 
   const handleCheckout = async () => {
