@@ -4,10 +4,14 @@ import { WebhooksHelper } from "square";
 import { getSquareClient } from "@/lib/square";
 import { sendOrderConfirmationEmail, sendNewOrderEmail } from "@/lib/email";
 import Order from "@/lib/models/Order";
+import Product from "@/lib/models/Product";
+import mongoose from "mongoose";
 import {
   makePostRequest,
   makeSquareWebhookPayload,
   makeSquareOrderResponse,
+  fakeProductId,
+  validProduct,
 } from "../setup/fixtures";
 
 // Convenience: returns the mocked square client's batchGet fn
@@ -118,6 +122,76 @@ describe("POST /api/square/webhook", () => {
       expect(res.status).toBe(200);
       const json = await res.json();
       expect(json.received).toBe(true);
+    });
+  });
+
+  describe("order items", () => {
+    it("builds order items from Square line items for a multi-product cart", async () => {
+      const otherId = new mongoose.Types.ObjectId().toString();
+      vi.mocked(mockBatchGet()).mockResolvedValueOnce(
+        makeSquareOrderResponse({
+          lineItems: [
+            {
+              name: "Lavender Bar",
+              quantity: "2",
+              basePriceMoney: { amount: BigInt(850), currency: "USD" },
+              metadata: { productId: fakeProductId.toString() },
+            },
+            {
+              name: "Honey Oat Bar",
+              quantity: "1",
+              basePriceMoney: { amount: BigInt(900), currency: "USD" },
+              metadata: { productId: otherId },
+            },
+          ],
+        })
+      );
+      await POST(makePostRequest("/api/square/webhook", makeSquareWebhookPayload()));
+      const order = await Order.findOne({ squareOrderId: "sq-order-abc123" });
+      expect(order!.items).toHaveLength(2);
+      expect(order!.items[0].product.toString()).toBe(fakeProductId.toString());
+      expect(order!.items[1]).toMatchObject({ name: "Honey Oat Bar", price: 9, quantity: 1 });
+      expect(order!.subtotal).toBe(26);
+    });
+
+    it("fills in item images from the product catalog", async () => {
+      const product = await Product.create({ ...validProduct, images: ["https://img.example.com/lav.jpg"] });
+      vi.mocked(mockBatchGet()).mockResolvedValueOnce(
+        makeSquareOrderResponse({
+          lineItems: [
+            {
+              name: "Lavender Bar",
+              quantity: "1",
+              basePriceMoney: { amount: BigInt(850), currency: "USD" },
+              metadata: { productId: product._id.toString() },
+            },
+          ],
+        })
+      );
+      await POST(makePostRequest("/api/square/webhook", makeSquareWebhookPayload()));
+      const order = await Order.findOne({ squareOrderId: "sq-order-abc123" });
+      expect(order!.items[0].image).toBe("https://img.example.com/lav.jpg");
+    });
+
+    it("falls back to legacy order-level items JSON for older payment links", async () => {
+      vi.mocked(mockBatchGet()).mockResolvedValueOnce(
+        makeSquareOrderResponse({
+          lineItems: [
+            {
+              name: "Lavender Bar",
+              quantity: "2",
+              basePriceMoney: { amount: BigInt(850), currency: "USD" },
+            },
+          ],
+          legacyItems: [
+            { productId: fakeProductId.toString(), name: "Lavender Bar", price: 8.5, quantity: 2, image: "" },
+          ],
+        })
+      );
+      await POST(makePostRequest("/api/square/webhook", makeSquareWebhookPayload()));
+      const order = await Order.findOne({ squareOrderId: "sq-order-abc123" });
+      expect(order!.items).toHaveLength(1);
+      expect(order!.items[0].product.toString()).toBe(fakeProductId.toString());
     });
   });
 

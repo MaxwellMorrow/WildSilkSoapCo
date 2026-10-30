@@ -90,12 +90,12 @@ describe("POST /api/square/checkout", () => {
       expect(call.prePopulatedData).toBeUndefined();
     });
 
-    it("stores empty string for userId in order metadata", async () => {
+    it("omits order metadata when there is no user to record", async () => {
       vi.mocked(mockPaymentLinksCreate()).mockResolvedValueOnce(successfulPaymentLinkResponse);
       const req = makePostRequest("/api/square/checkout", { items: validCart });
       await POST(req);
       const call = vi.mocked(mockPaymentLinksCreate()).mock.calls[0][0];
-      expect(call.order.metadata.userId).toBe("");
+      expect(call.order.metadata).toBeUndefined();
     });
 
     it("includes askForShippingAddress in checkout options", async () => {
@@ -126,15 +126,47 @@ describe("POST /api/square/checkout", () => {
       expect(call.order.metadata.userId).toBe(customerSession.user.id);
     });
 
-    it("serializes items into metadata JSON string", async () => {
+    it("stores the product id on each line item's metadata", async () => {
       vi.mocked(getServerSession).mockResolvedValueOnce(adminSession as never);
       vi.mocked(mockPaymentLinksCreate()).mockResolvedValueOnce(successfulPaymentLinkResponse);
       const req = makePostRequest("/api/square/checkout", { items: validCart });
       await POST(req);
       const call = vi.mocked(mockPaymentLinksCreate()).mock.calls[0][0];
-      const items = JSON.parse(call.order.metadata.items);
-      expect(items[0].name).toBe("Lavender Bar");
-      expect(items[0].price).toBe(8.5);
+      expect(call.order.lineItems[0].metadata).toEqual({ productId: "prod-123" });
+      expect(call.order.metadata).toEqual({ userId: adminSession.user.id });
+    });
+  });
+
+  describe("Square metadata limits", () => {
+    // Square rejects any metadata value over 255 characters
+    const SQUARE_METADATA_VALUE_MAX = 255;
+
+    it("keeps every metadata value within Square's limit for a large multi-item cart", async () => {
+      const imageUrl =
+        "https://res.cloudinary.com/demo/image/upload/v1730000000/wildsilksoap/products/abcdefghijklmnopqrst.jpg";
+      const bigCart = Array.from({ length: 12 }, (_, i) => ({
+        productId: `6720a1b2c3d4e5f6a7b8c9${i.toString().padStart(2, "0")}`,
+        name: `Lavender Oatmeal Goat Milk Soap ${i}`,
+        price: 8.5,
+        quantity: 1,
+        image: imageUrl,
+      }));
+      vi.mocked(getServerSession).mockResolvedValueOnce(customerSession as never);
+      vi.mocked(mockPaymentLinksCreate()).mockResolvedValueOnce(successfulPaymentLinkResponse);
+
+      const res = await POST(makePostRequest("/api/square/checkout", { items: bigCart }));
+      expect(res.status).toBe(200);
+
+      const call = vi.mocked(mockPaymentLinksCreate()).mock.calls[0][0];
+      const metadataMaps = [
+        call.order.metadata ?? {},
+        ...call.order.lineItems.map((li: { metadata?: Record<string, string> }) => li.metadata ?? {}),
+      ];
+      for (const map of metadataMaps) {
+        for (const value of Object.values(map) as string[]) {
+          expect(value.length).toBeLessThanOrEqual(SQUARE_METADATA_VALUE_MAX);
+        }
+      }
     });
   });
 });

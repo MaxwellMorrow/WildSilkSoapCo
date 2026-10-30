@@ -3,7 +3,32 @@ import dbConnect from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
 import { getSquareClient, getSquareLocationId } from "@/lib/square";
 import { sendOrderConfirmationEmail, sendNewOrderEmail } from "@/lib/email";
+import Product from "@/lib/models/Product";
 import { WebhooksHelper, OrderLineItem } from "square";
+import mongoose from "mongoose";
+
+interface OrderItemInput {
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
+}
+
+// Fill in each item's image from the product catalog when it isn't already known
+async function attachProductImages(items: OrderItemInput[]): Promise<OrderItemInput[]> {
+  const ids = items
+    .filter((item) => !item.image && mongoose.isValidObjectId(item.productId))
+    .map((item) => item.productId);
+  if (ids.length === 0) return items;
+
+  const products = await Product.find({ _id: { $in: ids } }, { images: 1 }).lean();
+  const imageById = new Map(products.map((p) => [p._id.toString(), p.images?.[0]]));
+  return items.map((item) => ({
+    ...item,
+    image: item.image || imageById.get(item.productId) || undefined,
+  }));
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -165,14 +190,28 @@ export async function POST(request: NextRequest) {
         // Extract metadata
         const metadata = order.metadata || {};
         const userId = metadata.userId || undefined;
-        const itemsJson = metadata.items || "[]";
-        let items;
-        try {
-          items = JSON.parse(itemsJson);
-        } catch (parseError) {
-          console.error("Failed to parse items JSON:", parseError);
-          items = [];
+
+        // Product IDs are stored on each line item's metadata; name, price and quantity
+        // come straight from Square so they reflect what the customer actually paid for
+        let items: OrderItemInput[] = (order.lineItems || [])
+          .filter((item: OrderLineItem) => item.metadata?.productId)
+          .map((item: OrderLineItem) => ({
+            productId: item.metadata!.productId as string,
+            name: item.name || "",
+            price: Number(item.basePriceMoney?.amount || 0) / 100,
+            quantity: Number(item.quantity || 1),
+          }));
+
+        if (items.length === 0 && metadata.items) {
+          // Payment links created before per-line-item metadata kept the cart as JSON here
+          try {
+            items = JSON.parse(metadata.items);
+          } catch (parseError) {
+            console.error("Failed to parse items JSON:", parseError);
+          }
         }
+
+        items = await attachProductImages(items);
 
         // Get shipping address from fulfillments
         const fulfillment = order.fulfillments?.[0];
@@ -212,8 +251,8 @@ export async function POST(request: NextRequest) {
         const newOrder = await Order.create({
           user: userId || undefined,
           email: customerEmail,
-          items: items.map((item: { productId: string; name: string; price: number; quantity: number; image?: string }) => ({
-            product: item.productId,
+          items: items.map((item) => ({
+            product: new mongoose.Types.ObjectId(item.productId),
             name: item.name,
             price: item.price,
             quantity: item.quantity,

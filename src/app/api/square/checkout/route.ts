@@ -56,6 +56,9 @@ export async function POST(request: NextRequest) {
           currency: "USD",
         },
         note: item.image ? `Image: ${item.image}` : undefined,
+        // Square caps each metadata value at 255 chars, so the product link lives on
+        // its own line item rather than in one order-level blob that grows with the cart
+        metadata: { productId: item.productId },
       })),
       ...(shippingCents > 0
         ? [
@@ -76,18 +79,7 @@ export async function POST(request: NextRequest) {
       order: {
         locationId,
         lineItems,
-        metadata: {
-          ...(session?.user?.id ? { userId: session.user.id } : {}),
-          items: JSON.stringify(
-            items.map((item: CartItem) => ({
-              productId: item.productId,
-              name: item.name,
-              price: item.price,
-              quantity: item.quantity,
-              image: item.image || "",
-            }))
-          ),
-        },
+        metadata: session?.user?.id ? { userId: session.user.id } : undefined,
       },
       checkoutOptions: {
         askForShippingAddress: true,

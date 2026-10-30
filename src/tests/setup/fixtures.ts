@@ -116,19 +116,27 @@ export function makeSquareWebhookPayload(overrides: Record<string, unknown> = {}
   };
 }
 
-// A realistic Square Orders API response returned by batchGet
-export function makeSquareOrderResponse(itemsMetadata: unknown[] = []) {
+// A realistic Square Orders API response returned by batchGet.
+// Product IDs live on each line item's metadata; pass legacyItems to simulate a
+// payment link created before that change, when the cart was stored as order-level JSON.
+export function makeSquareOrderResponse(
+  options: { lineItems?: Array<Record<string, unknown>>; legacyItems?: unknown[] } = {}
+) {
+  const lineItems = options.lineItems ?? [
+    {
+      name: "Lavender Bar",
+      quantity: "2",
+      basePriceMoney: { amount: BigInt(850), currency: "USD" },
+      metadata: { productId: fakeProductId.toString() },
+    },
+  ];
   return {
     orders: [
       {
         id: "sq-order-abc123",
         locationId: "test-location-id",
         lineItems: [
-          {
-            name: "Lavender Bar",
-            quantity: "2",
-            basePriceMoney: { amount: BigInt(850), currency: "USD" },
-          },
+          ...lineItems,
           {
             name: "Shipping",
             quantity: "1",
@@ -152,22 +160,9 @@ export function makeSquareOrderResponse(itemsMetadata: unknown[] = []) {
             },
           },
         ],
-        metadata: {
-          userId: "",
-          items: JSON.stringify(
-            itemsMetadata.length > 0
-              ? itemsMetadata
-              : [
-                  {
-                    productId: fakeProductId.toString(),
-                    name: "Lavender Bar",
-                    price: 8.5,
-                    quantity: 2,
-                    image: "",
-                  },
-                ]
-          ),
-        },
+        metadata: options.legacyItems
+          ? { items: JSON.stringify(options.legacyItems) }
+          : ({} as Record<string, string>),
       },
     ],
     errors: [],
