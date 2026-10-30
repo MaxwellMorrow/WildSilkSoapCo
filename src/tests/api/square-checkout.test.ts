@@ -168,5 +168,33 @@ describe("POST /api/square/checkout", () => {
         }
       }
     });
+
+    it("accepts the 10-bar customer order that Square rejected with VALUE_TOO_LONG", async () => {
+      const names = [
+        "Harvest Fig", "Oak and Whiskey", "Milk Oat and Honey", "Lavender Sage",
+        "Passion Fruit", "Ginger Lime", "Feminine Bar", "Cashmere",
+        "Woods and Rum", "Hibiscus",
+      ];
+      const customerCart = names.map((name, i) => ({
+        productId: `6720a1b2c3d4e5f6a7b8c9${i.toString().padStart(2, "0")}`,
+        name,
+        price: 12,
+        quantity: 1,
+        image: `https://res.cloudinary.com/demo/image/upload/v1730000000/wildsilksoap/products/${name.replace(/ /g, "-").toLowerCase()}.jpg`,
+      }));
+      vi.mocked(mockPaymentLinksCreate()).mockResolvedValueOnce(successfulPaymentLinkResponse);
+
+      const res = await POST(makePostRequest("/api/square/checkout", { items: customerCart }));
+      expect(res.status).toBe(200);
+
+      const call = vi.mocked(mockPaymentLinksCreate()).mock.calls[0][0];
+      // The rejected field is gone entirely
+      expect(call.order.metadata?.items).toBeUndefined();
+      // 10 bars at $12 = $120, over the free-shipping threshold, so no Shipping line
+      expect(call.order.lineItems).toHaveLength(10);
+      for (const li of call.order.lineItems) {
+        expect(li.metadata.productId.length).toBeLessThanOrEqual(SQUARE_METADATA_VALUE_MAX);
+      }
+    });
   });
 });
