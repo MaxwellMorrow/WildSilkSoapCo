@@ -147,6 +147,7 @@ export async function sendOrderConfirmationEmail(
     items: Array<{ name: string; quantity: number; price: number; image?: string }>;
     subtotal: number;
     shippingCost: number;
+    tax?: number;
     total: number;
     shippingAddress: {
       name: string;
@@ -282,6 +283,11 @@ export async function sendOrderConfirmationEmail(
                     ${order.shippingCost === 0 ? "Free" : `$${order.shippingCost.toFixed(2)}`}
                   </span>
                 </div>
+                ${order.tax ? `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                  <span style="color: #636E72; font-size: 16px;">Tax</span>
+                  <span style="color: #2D3436; font-size: 16px; font-weight: 500;">$${order.tax.toFixed(2)}</span>
+                </div>` : ""}
                 <div style="border-top: 2px solid #D4A574; padding-top: 15px; margin-top: 15px; display: flex; justify-content: space-between;">
                   <span style="color: #2D3436; font-size: 18px; font-weight: 600;">Total</span>
                   <span style="color: #2D3436; font-size: 20px; font-weight: 700;">$${order.total.toFixed(2)}</span>
@@ -472,6 +478,7 @@ export async function sendNewOrderEmail(
     items: Array<{ name: string; quantity: number; price: number }>;
     subtotal: number;
     shippingCost: number;
+    tax?: number;
     total: number;
     shippingAddress: {
       name: string;
@@ -580,6 +587,11 @@ export async function sendNewOrderEmail(
                     ${order.shippingCost === 0 ? "Free" : `$${order.shippingCost.toFixed(2)}`}
                   </span>
                 </div>
+                ${order.tax ? `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                  <span style="color: #636E72; font-size: 16px;">Tax</span>
+                  <span style="color: #2D3436; font-size: 16px; font-weight: 500;">$${order.tax.toFixed(2)}</span>
+                </div>` : ""}
                 <div style="border-top: 2px solid #D4A574; padding-top: 15px; margin-top: 15px; display: flex; justify-content: space-between;">
                   <span style="color: #2D3436; font-size: 18px; font-weight: 600;">Total</span>
                   <span style="color: #2D3436; font-size: 20px; font-weight: 700;">$${order.total.toFixed(2)}</span>

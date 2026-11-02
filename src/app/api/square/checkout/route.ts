@@ -46,9 +46,23 @@ export async function POST(request: NextRequest) {
     );
     const shippingCents = subtotal >= 100 ? 0 : 1250;
 
+    // Sales tax is set up in the Square Dashboard (Settings > Sales taxes) and referenced by
+    // its catalog ID, so the rate can change there without a code change. Square calculates
+    // the amount and shows it on the payment page. Our line items are ad-hoc (not catalog
+    // items), so the dashboard's own item rules don't reach them; the tax has to be attached
+    // to each line here. Shipping is only taxed when SQUARE_TAX_APPLIES_TO_SHIPPING=true.
+    const taxId = process.env.SQUARE_TAX_ID?.trim();
+    const taxShipping = process.env.SQUARE_TAX_APPLIES_TO_SHIPPING?.trim().toLowerCase() === "true";
+    const TAX_UID = "sales-tax";
+    const appliedTaxes = taxId ? [{ taxUid: TAX_UID }] : undefined;
+    if (!taxId) {
+      console.warn("SQUARE_TAX_ID is not configured - checkout will not collect sales tax");
+    }
+
     // Create line items for Square Payment Link
     const lineItems = [
-      ...items.map((item: CartItem) => ({
+      ...items.map((item: CartItem, index: number) => ({
+        uid: `item-${index}`,
         name: item.name,
         quantity: item.quantity.toString(),
         basePriceMoney: {
@@ -59,16 +73,19 @@ export async function POST(request: NextRequest) {
         // Square caps each metadata value at 255 chars, so the product link lives on
         // its own line item rather than in one order-level blob that grows with the cart
         metadata: { productId: item.productId },
+        appliedTaxes,
       })),
       ...(shippingCents > 0
         ? [
             {
+              uid: "shipping",
               name: "Shipping",
               quantity: "1",
               basePriceMoney: {
                 amount: BigInt(shippingCents),
                 currency: "USD",
               },
+              appliedTaxes: taxShipping ? appliedTaxes : undefined,
             },
           ]
         : []),
@@ -79,6 +96,9 @@ export async function POST(request: NextRequest) {
       order: {
         locationId,
         lineItems,
+        taxes: taxId
+          ? [{ uid: TAX_UID, catalogObjectId: taxId, scope: "LINE_ITEM" as const }]
+          : undefined,
         metadata: session?.user?.id ? { userId: session.user.id } : undefined,
       },
       checkoutOptions: {

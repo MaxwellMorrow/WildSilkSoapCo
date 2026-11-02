@@ -233,7 +233,11 @@ export async function POST(request: NextRequest) {
           }
         });
 
-        const total = subtotal + shippingCost;
+        // Tax and the grand total come from Square, which calculated them on the payment page
+        const tax = Number(order.totalTaxMoney?.amount ?? 0) / 100;
+        const total = order.totalMoney?.amount != null
+          ? Number(order.totalMoney.amount) / 100
+          : subtotal + shippingCost + tax;
 
         // Square uses snake_case: buyer_email_address
         // recipient.emailAddress is the correct property name in Square SDK
@@ -261,7 +265,7 @@ export async function POST(request: NextRequest) {
           shippingAddress,
           subtotal,
           shippingCost,
-          tax: 0, // Simplified - no tax calculation
+          tax,
           total,
           squareOrderId: orderId,
           squarePaymentLinkId: payment.payment_link_id || undefined,
@@ -286,6 +290,7 @@ export async function POST(request: NextRequest) {
               })),
               subtotal,
               shippingCost,
+              tax,
               total,
               shippingAddress,
             });
@@ -310,6 +315,7 @@ export async function POST(request: NextRequest) {
               })),
               subtotal,
               shippingCost,
+              tax,
               total,
               shippingAddress,
               squareOrderId: orderId,

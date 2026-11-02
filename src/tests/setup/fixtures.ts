@@ -120,7 +120,12 @@ export function makeSquareWebhookPayload(overrides: Record<string, unknown> = {}
 // Product IDs live on each line item's metadata; pass legacyItems to simulate a
 // payment link created before that change, when the cart was stored as order-level JSON.
 export function makeSquareOrderResponse(
-  options: { lineItems?: Array<Record<string, unknown>>; legacyItems?: unknown[] } = {}
+  options: {
+    lineItems?: Array<Record<string, unknown>>;
+    legacyItems?: unknown[];
+    // Extra order fields, e.g. totalTaxMoney / totalMoney as Square calculated them
+    orderFields?: Record<string, unknown>;
+  } = {}
 ) {
   const lineItems = options.lineItems ?? [
     {
@@ -163,6 +168,7 @@ export function makeSquareOrderResponse(
         metadata: options.legacyItems
           ? { items: JSON.stringify(options.legacyItems) }
           : ({} as Record<string, string>),
+        ...options.orderFields,
       },
     ],
     errors: [],

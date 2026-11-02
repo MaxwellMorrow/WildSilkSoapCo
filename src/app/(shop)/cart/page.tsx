@@ -247,6 +247,9 @@ export default function CartPage() {
                   <span>Total</span>
                   <span>${total.toFixed(2)}</span>
                 </div>
+                <p className="text-sm text-charcoal-light">
+                  Sales tax, if applicable, is calculated at checkout.
+                </p>
               </div>
 
               <button

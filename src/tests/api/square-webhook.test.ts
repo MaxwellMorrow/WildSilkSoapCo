@@ -83,6 +83,36 @@ describe("POST /api/square/webhook", () => {
       expect(order!.total).toBe(27.0);
     });
 
+    it("stores no tax when Square did not charge any", async () => {
+      vi.mocked(mockBatchGet()).mockResolvedValueOnce(makeSquareOrderResponse());
+      const req = makePostRequest("/api/square/webhook", makeSquareWebhookPayload());
+      await POST(req);
+      const order = await Order.findOne({ squareOrderId: "sq-order-abc123" });
+      expect(order!.tax).toBe(0);
+    });
+
+    it("records the tax and total that Square calculated", async () => {
+      vi.mocked(mockBatchGet()).mockResolvedValueOnce(
+        makeSquareOrderResponse({
+          orderFields: {
+            totalTaxMoney: { amount: BigInt(136), currency: "USD" },
+            totalMoney: { amount: BigInt(2836), currency: "USD" },
+          },
+        })
+      );
+      const req = makePostRequest("/api/square/webhook", makeSquareWebhookPayload());
+      await POST(req);
+      const order = await Order.findOne({ squareOrderId: "sq-order-abc123" });
+      expect(order!.subtotal).toBe(17.0);
+      expect(order!.shippingCost).toBe(10.0);
+      expect(order!.tax).toBe(1.36);
+      expect(order!.total).toBe(28.36);
+      expect(vi.mocked(sendOrderConfirmationEmail)).toHaveBeenCalledWith(
+        "jane@example.com",
+        expect.objectContaining({ tax: 1.36, total: 28.36 })
+      );
+    });
+
     it("stores the shippingAddress from the Square fulfillment recipient", async () => {
       vi.mocked(mockBatchGet()).mockResolvedValueOnce(makeSquareOrderResponse());
       const req = makePostRequest("/api/square/webhook", makeSquareWebhookPayload());

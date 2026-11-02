@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { POST } from "@/app/api/square/checkout/route";
 import { getServerSession } from "next-auth";
 import { getSquareClient, getSquareLocationId } from "@/lib/square";
@@ -104,6 +104,69 @@ describe("POST /api/square/checkout", () => {
       await POST(req);
       const call = vi.mocked(mockPaymentLinksCreate()).mock.calls[0][0];
       expect(call.checkoutOptions.askForShippingAddress).toBe(true);
+    });
+  });
+
+  describe("sales tax", () => {
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    it("does not add tax when SQUARE_TAX_ID is not configured", async () => {
+      vi.stubEnv("SQUARE_TAX_ID", "");
+      vi.mocked(mockPaymentLinksCreate()).mockResolvedValueOnce(successfulPaymentLinkResponse);
+      const req = makePostRequest("/api/square/checkout", { items: validCart });
+      await POST(req);
+      const call = vi.mocked(mockPaymentLinksCreate()).mock.calls[0][0];
+      expect(call.order.taxes).toBeUndefined();
+      expect(call.order.lineItems[0].appliedTaxes).toBeUndefined();
+    });
+
+    it("attaches the Square catalog tax to every product line", async () => {
+      vi.stubEnv("SQUARE_TAX_ID", "TAX_CATALOG_ID");
+      vi.mocked(mockPaymentLinksCreate()).mockResolvedValueOnce(successfulPaymentLinkResponse);
+      const cart = [
+        ...validCart,
+        { productId: "prod-456", name: "Oat Bar", price: 9, quantity: 1, image: "" },
+      ];
+      const req = makePostRequest("/api/square/checkout", { items: cart });
+      await POST(req);
+      const call = vi.mocked(mockPaymentLinksCreate()).mock.calls[0][0];
+      expect(call.order.taxes).toEqual([
+        { uid: "sales-tax", catalogObjectId: "TAX_CATALOG_ID", scope: "LINE_ITEM" },
+      ]);
+      const products = call.order.lineItems.filter(
+        (li: { name: string }) => li.name !== "Shipping"
+      );
+      expect(products).toHaveLength(2);
+      for (const li of products) {
+        expect(li.appliedTaxes).toEqual([{ taxUid: "sales-tax" }]);
+      }
+      expect(new Set(call.order.lineItems.map((li: { uid: string }) => li.uid)).size).toBe(
+        call.order.lineItems.length
+      );
+    });
+
+    it("does not tax shipping by default", async () => {
+      vi.stubEnv("SQUARE_TAX_ID", "TAX_CATALOG_ID");
+      vi.mocked(mockPaymentLinksCreate()).mockResolvedValueOnce(successfulPaymentLinkResponse);
+      const req = makePostRequest("/api/square/checkout", { items: validCart });
+      await POST(req);
+      const call = vi.mocked(mockPaymentLinksCreate()).mock.calls[0][0];
+      const shipping = call.order.lineItems.find((li: { name: string }) => li.name === "Shipping");
+      expect(shipping).toBeDefined();
+      expect(shipping.appliedTaxes).toBeUndefined();
+    });
+
+    it("taxes shipping when SQUARE_TAX_APPLIES_TO_SHIPPING is true", async () => {
+      vi.stubEnv("SQUARE_TAX_ID", "TAX_CATALOG_ID");
+      vi.stubEnv("SQUARE_TAX_APPLIES_TO_SHIPPING", "true");
+      vi.mocked(mockPaymentLinksCreate()).mockResolvedValueOnce(successfulPaymentLinkResponse);
+      const req = makePostRequest("/api/square/checkout", { items: validCart });
+      await POST(req);
+      const call = vi.mocked(mockPaymentLinksCreate()).mock.calls[0][0];
+      const shipping = call.order.lineItems.find((li: { name: string }) => li.name === "Shipping");
+      expect(shipping.appliedTaxes).toEqual([{ taxUid: "sales-tax" }]);
     });
   });
 
