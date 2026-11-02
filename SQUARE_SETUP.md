@@ -31,6 +31,10 @@ SQUARE_LOCATION_ID=your-location-id-here
 SQUARE_ENVIRONMENT=sandbox
 SQUARE_WEBHOOK_SECRET=your-webhook-secret-here
 
+# Sales tax (optional) - ID of a tax created in Square Dashboard > Settings > Sales taxes
+SQUARE_TAX_ID=your-tax-id-here
+SQUARE_TAX_APPLIES_TO_SHIPPING=false
+
 # Optional: For Web Payment SDK (if you want to add embedded checkout later)
 NEXT_PUBLIC_SQUARE_APPLICATION_ID=your-application-id-here
 
@@ -74,7 +78,22 @@ GMAIL_APP_PASSWORD=your-16-character-app-password
 3. Copy the **Webhook Signature Key**
 4. Add to `SQUARE_WEBHOOK_SECRET`
 
-### 6. Environment Setting
+### 6. Sales Tax (optional)
+Checkout charges no sales tax until `SQUARE_TAX_ID` is set.
+1. In the Square Dashboard, go to **Settings → Sales taxes** and create the tax with its rate
+   (for example "State Sales Tax", 7%). Create it under the same location as `SQUARE_LOCATION_ID`.
+2. Copy the tax's ID. It isn't shown in the Dashboard. You can find it in the Developer Console's
+   API Explorer by running **Catalog → ListCatalog** with `types=TAX` and copying the `id` of your
+   tax. It looks like `ABCD1234EFGH5678IJKL`.
+3. Add it to `SQUARE_TAX_ID`.
+4. Shipping is not taxed by default. If your state taxes shipping, set `SQUARE_TAX_APPLIES_TO_SHIPPING=true`.
+
+Square calculates the tax on its payment page using that rate. The webhook records the tax Square
+charged on the order, and it appears in the order pages and confirmation emails. To change the rate,
+edit the tax in the Dashboard; no redeploy is needed. Use a separate tax for sandbox and production,
+since each has its own catalog.
+
+### 7. Environment Setting
 - Set `SQUARE_ENVIRONMENT=sandbox` for testing
 - Set `SQUARE_ENVIRONMENT=production` for live payments
 
